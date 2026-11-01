@@ -1,0 +1,24 @@
+# Folder berat (dependencies)
+paruhkita-api/vendor/
+paruhkita-api/node_modules/
+paruhkita-fe/node_modules/
+paruhkita-fe/dist/
+
+# File environment rahasia (JANGAN pernah di-push!)
+paruhkita-api/.env
+paruhkita-api/.env.production
+paruhkita-api/storage/pail/
+paruhkita-api/storage/*.key
+paruhkita-api/public/storage/
+paruhkita-api/public/hot/
+
+# File build / cache
+paruhkita-api/.phpunit.result.cache
+paruhkita-api/.phpunit.cache/
+
+# OS & editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
