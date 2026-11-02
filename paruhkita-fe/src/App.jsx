@@ -15,6 +15,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import CvList from './pages/CvList';
 import PortfolioList from './pages/PortfolioList';
+import MerchantsPage from './pages/MerchantsPage';
 
 function AppLayout({ children }) {
   return (
@@ -129,10 +130,23 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+         
           <Route path="/portfolio" element={<Navigate to="/portofolio" replace />} />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/kesiapan-karier" replace />} />
+
+          <Route
+          path="/merchant/pelamar"
+            element={
+              <ProtectedRoute requiredRole="merchant">
+                <MerchantsPage />
+              </ProtectedRoute>
+            }
+          />
+
+         {/* Fallback */}
+          <Route path="*" element={<Navigate to="/kesiapan-karier" replace />} />        
+          
         </Routes>
       </BrowserRouter>
     </AuthProvider>
