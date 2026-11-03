@@ -15,6 +15,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'email_verified_at',
         'role',
         'phone',
     ];
@@ -36,6 +37,11 @@ class User extends Authenticatable
     public function studentProfile()
     {
         return $this->hasOne(StudentProfile::class);
+    }
+
+    public function merchantProfile()
+    {
+        return $this->hasOne(MerchantProfile::class);
     }
 
     public function studentSkills()

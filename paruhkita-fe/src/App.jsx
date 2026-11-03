@@ -5,8 +5,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
-// Pages
+
+// Pages Mahasiswa //
 import Login from './pages/Login';
+import Register from './pages/Register';
 import KesiapanKarier from './pages/KesiapanKarier';
 import CariLowongan from './pages/CariLowongan';
 import Komunitas from './pages/Komunitas';
@@ -16,6 +18,18 @@ import Profile from './pages/Profile';
 import CvList from './pages/CvList';
 import PortfolioList from './pages/PortfolioList';
 
+// Pages Merchant //
+import MerchantDashboard from './pages/MerchantDashboard';
+import MerchantProfile from './pages/MerchantProfile';
+import MerchantSettings from './pages/MerchantSettings';
+import AdminMerchantVerifications from './pages/AdminMerchantVerifications';
+import PublicMerchantProfile from './pages/PublicMerchantProfile';
+import AdminReferenceData from './pages/AdminReferenceData';
+import AdminCampusForm from './pages/AdminCampusForm';
+import AdminMasterForm from './pages/AdminMasterForm';
+import AdminLayout from './components/AdminLayout';
+
+// Layout Standar Mahasiswa
 function AppLayout({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#F6F9FC] print:bg-white print:min-h-0 print:block">
@@ -32,23 +46,104 @@ function AppLayout({ children }) {
   );
 }
 
+// Layout Khusus Merchant
+function MerchantLayout({ children }) {
+  return (
+    <div className="min-h-screen flex flex-col bg-[#F6F9FC]">
+      <main className="flex-1">
+        {children}
+      </main>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Route */}
+          {/* ================= PUBLIC ROUTES ================= */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes */}
+          {/* ================= PROTECTED ROUTES (MERCHANT) ================= */}
           <Route
-            path="/"
+            path="/merchant/dashboard"
             element={
               <ProtectedRoute>
-                <Navigate to="/kesiapan-karier" replace />
+                <MerchantLayout>
+                  <MerchantDashboard />
+                </MerchantLayout>
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/merchant/profile"
+            element={
+              <ProtectedRoute>
+                <MerchantLayout>
+                  <MerchantProfile />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/settings"
+            element={
+              <ProtectedRoute>
+                <MerchantLayout>
+                  <MerchantSettings />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/merchant-verifications"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout><AdminMerchantVerifications /></AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reference-data"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout><AdminReferenceData /></AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reference-data/campuses/new"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout><AdminCampusForm /></AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reference-data/study-programs/new"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout><AdminMasterForm type="study_programs" /></AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reference-data/job-categories/new"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout><AdminMasterForm type="job_categories" /></AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ================= APP ENTRY ================= */}
+          <Route
+            path="/"
+            element={<Navigate to="/login" replace />}
+          />
+          {/* ================= PROTECTED ROUTES (MAHASISWA) ================= */}
           <Route
             path="/kesiapan-karier"
             element={
@@ -65,6 +160,16 @@ export default function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <CariLowongan />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/perusahaan/:id"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <PublicMerchantProfile />
                 </AppLayout>
               </ProtectedRoute>
             }
@@ -131,8 +236,8 @@ export default function App() {
           />
           <Route path="/portfolio" element={<Navigate to="/portofolio" replace />} />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/kesiapan-karier" replace />} />
+          {/* Fallback Route */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

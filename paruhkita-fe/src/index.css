@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./admin.css";
 
 @theme {
   --color-pk-navy: #03045E;
