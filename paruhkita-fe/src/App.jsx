@@ -6,7 +6,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
 
-// Pages Mahasiswa //
+// Pages Mahasiswa 
 import Login from './pages/Login';
 import Register from './pages/Register';
 import KesiapanKarier from './pages/KesiapanKarier';
@@ -18,7 +18,7 @@ import Profile from './pages/Profile';
 import CvList from './pages/CvList';
 import PortfolioList from './pages/PortfolioList';
 
-// Pages Merchant //
+// Pages Merchant 
 import MerchantDashboard from './pages/MerchantDashboard';
 import MerchantProfile from './pages/MerchantProfile';
 import MerchantSettings from './pages/MerchantSettings';
@@ -29,7 +29,7 @@ import AdminCampusForm from './pages/AdminCampusForm';
 import AdminMasterForm from './pages/AdminMasterForm';
 import AdminLayout from './components/AdminLayout';
 
-// Layout Standar Mahasiswa
+// Layout Standar Mahasiswa //
 function AppLayout({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#F6F9FC] print:bg-white print:min-h-0 print:block">
@@ -46,7 +46,7 @@ function AppLayout({ children }) {
   );
 }
 
-// Layout Khusus Merchant
+// Layout Khusus Merchant //
 function MerchantLayout({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#F6F9FC]">
