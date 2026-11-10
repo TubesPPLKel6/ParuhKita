@@ -7,6 +7,8 @@ use App\Models\JobApplication;
 use App\Models\JobCategory;
 use App\Models\JobPost;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -18,6 +20,7 @@ class JobController extends Controller
 
         $jobs = JobPost::query()
             ->where('status', 'active')
+            ->where(fn ($query) => $query->whereNull('application_deadline')->orWhereDate('application_deadline', '>=', now()->toDateString()))
             ->whereHas('merchantProfile', fn ($query) => $query->where('is_verified', true))
             ->with('merchantProfile:id,merchant_name,address,logo_path')
             ->withCount('applications')
@@ -28,6 +31,24 @@ class JobController extends Controller
             ->get();
 
         return response()->json(['status' => true, 'data' => $jobs]);
+    }
+
+    public function show(Request $request, JobPost $jobPost)
+    {
+        abort_unless($request->user()->role === 'mahasiswa', 403, 'Akses hanya untuk mahasiswa.');
+        abort_unless(
+            $jobPost->status === 'active'
+                && $jobPost->merchantProfile()->where('is_verified', true)->exists()
+                && (!$jobPost->application_deadline || $jobPost->application_deadline->toDateString() >= now()->toDateString()),
+            404,
+            'Lowongan tidak tersedia.'
+        );
+
+        $jobPost->load('merchantProfile:id,merchant_name,address,logo_path')
+            ->loadCount('applications')
+            ->loadExists(['applications as is_applied' => fn ($query) => $query->where('user_id', $request->user()->id)]);
+
+        return response()->json(['status' => true, 'data' => $jobPost]);
     }
 
     public function merchantIndex(Request $request)
@@ -91,14 +112,65 @@ class JobController extends Controller
             'Lowongan tidak tersedia.'
         );
 
+        if ($jobPost->application_deadline && $jobPost->application_deadline->toDateString() < now()->toDateString()) {
+            throw ValidationException::withMessages(['job' => 'Batas akhir lowongan ini sudah lewat.']);
+        }
+
         if ($jobPost->applications()->where('user_id', $request->user()->id)->exists()) {
             throw ValidationException::withMessages(['job' => 'Kamu sudah melamar lowongan ini.']);
         }
 
-        $application = $jobPost->applications()->create([
-            'user_id' => $request->user()->id,
-            'status' => 'pending',
+        $validated = $request->validate([
+            'motivation' => 'required|string|min:20|max:3000',
+            'cv' => 'required|file|mimes:pdf|max:2048',
+            'student_id' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'portfolio' => 'nullable|file|mimes:pdf|max:5120',
         ]);
+
+        $storedFiles = [];
+        try {
+            foreach (['cv', 'student_id', 'portfolio'] as $type) {
+                if ($request->hasFile($type)) {
+                    $file = $request->file($type);
+                    $storedFiles[$type] = [
+                        'path' => $file->store('application-documents', 'local'),
+                        'name' => $file->getClientOriginalName(),
+                        'mime' => $file->getMimeType(),
+                        'size' => $file->getSize(),
+                    ];
+                }
+            }
+
+            $application = DB::transaction(function () use ($jobPost, $request, $validated, $storedFiles) {
+                $application = $jobPost->applications()->create([
+                    'user_id' => $request->user()->id,
+                    'status' => 'pending',
+                    'motivation' => $validated['motivation'],
+                ]);
+
+                foreach ($storedFiles as $type => $file) {
+                    $application->documents()->create([
+                        'document_type' => $type,
+                        'original_name' => $file['name'],
+                        'file_path' => $file['path'],
+                        'mime_type' => $file['mime'],
+                        'file_size' => $file['size'],
+                    ]);
+                }
+
+                $application->statusHistories()->create([
+                    'status' => 'pending',
+                    'note' => 'Lamaran masuk antrean merchant untuk ditinjau.',
+                ]);
+
+                return $application;
+            });
+        } catch (\Throwable $error) {
+            foreach ($storedFiles as $file) {
+                Storage::disk('local')->delete($file['path']);
+            }
+            throw $error;
+        }
 
         return response()->json([
             'status' => true,
@@ -111,11 +183,20 @@ class JobController extends Controller
     {
         abort_unless($request->user()->role === 'mahasiswa', 403, 'Akses hanya untuk mahasiswa.');
         $applications = JobApplication::where('user_id', $request->user()->id)
-            ->with(['jobPost.merchantProfile:id,merchant_name,address'])
+            ->with(['jobPost.merchantProfile:id,merchant_name,address', 'documents', 'statusHistories', 'student:id,name,email', 'student.studentProfile:user_id,university,major'])
             ->latest()
             ->get();
 
         return response()->json(['status' => true, 'data' => $applications]);
+    }
+
+    public function downloadApplicationDocument(Request $request, JobApplication $jobApplication, $documentId)
+    {
+        abort_unless($jobApplication->user_id === $request->user()->id, 404);
+        $document = $jobApplication->documents()->findOrFail($documentId);
+        abort_unless(Storage::disk('local')->exists($document->file_path), 404);
+
+        return Storage::disk('local')->download($document->file_path, $document->original_name);
     }
 
     public function updateApplication(Request $request, JobApplication $jobApplication)
@@ -128,7 +209,14 @@ class JobController extends Controller
             'merchant_note' => 'nullable|string|max:2000|required_if:status,rejected',
         ]);
 
+        $previousStatus = $jobApplication->status;
         $jobApplication->update($validated);
+        if ($previousStatus !== $jobApplication->status) {
+            $jobApplication->statusHistories()->create([
+                'status' => $jobApplication->status,
+                'note' => $jobApplication->merchant_note,
+            ]);
+        }
 
         return response()->json([
             'status' => true,
@@ -160,6 +248,9 @@ class JobController extends Controller
             'wage' => 'required|string|max:100',
             'quota' => 'required|string|max:100',
             'description' => 'nullable|string|max:5000',
+            'responsibilities' => 'nullable|string|max:5000',
+            'qualifications' => 'nullable|string|max:5000',
+            'application_deadline' => 'nullable|date|after_or_equal:today',
         ]);
         $this->validateSubcategory($validated['category'], $validated['subcategory'] ?? null);
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { 
   Calendar, 
@@ -16,8 +16,7 @@ export default function CariLowongan() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  const [applyingId, setApplyingId] = useState(null);
-  const [notice, setNotice] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -33,23 +32,6 @@ export default function CariLowongan() {
       });
     return () => { active = false; };
   }, []);
-
-  const applyForJob = async (job) => {
-    setApplyingId(job.id);
-    setErrorMessage('');
-    setNotice('');
-    try {
-      await api.post(`/v1/jobs/${job.id}/applications`);
-      setJobs((current) => current.map((item) => item.id === job.id
-        ? { ...item, is_applied: true, applications_count: (item.applications_count || 0) + 1 }
-        : item));
-      setNotice(`Lamaran untuk "${job.title}" berhasil dikirim.`);
-    } catch (error) {
-      setErrorMessage(error.response?.data?.errors?.job?.[0] || error.response?.data?.message || (error.request ? 'Lamaran gagal dikirim. Coba lagi.' : error.message));
-    } finally {
-      setApplyingId(null);
-    }
-  };
 
   const toggleBookmark = (id) => {
     if (bookmarked.includes(id)) {
@@ -242,7 +224,6 @@ export default function CariLowongan() {
               </div>
             </div>
 
-            {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">{notice}</p>}
             {errorMessage && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">{errorMessage}</p>}
             {loading && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">Memuat lowongan...</div>}
             {!loading && jobs.length === 0 && !errorMessage && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">Belum ada lowongan aktif saat ini.</div>}
@@ -266,6 +247,10 @@ export default function CariLowongan() {
                 <div 
                   key={job.id} 
                   className="bg-[#CAF0F8]/40 border border-[#00B4D8]/30 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition"
+                  onClick={() => navigate(`/lowongan/${job.id}`)}
+                  onKeyDown={(event) => { if (event.key === 'Enter') navigate(`/lowongan/${job.id}`); }}
+                  role="link"
+                  tabIndex={0}
                 >
                   <div>
                     {/* Top row: Company & Bookmark */}
@@ -278,7 +263,7 @@ export default function CariLowongan() {
                       </div>
 
                       <button 
-                        onClick={() => toggleBookmark(job.id)}
+                        onClick={(event) => { event.stopPropagation(); toggleBookmark(job.id); }}
                         className="text-[#536B82] hover:text-[#023E8A] transition p-1"
                         title="Simpan Lowongan"
                       >
@@ -320,11 +305,10 @@ export default function CariLowongan() {
 
                   {/* Lamar Sekarang Button (Orange) */}
                   <button 
-                    onClick={() => applyForJob(job)}
-                    disabled={job.is_applied || applyingId === job.id}
+                    onClick={(event) => { event.stopPropagation(); navigate(`/lowongan/${job.id}`); }}
                     className="mt-4 w-full py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-white font-bold text-xs rounded-xl shadow-xs transition disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {job.is_applied ? 'Sudah Dilamar' : applyingId === job.id ? 'Mengirim...' : 'Lamar Sekarang'}
+                    {job.is_applied ? 'Lihat Lamaran' : 'Lamar Sekarang'}
                   </button>
                 </div>
               ))}

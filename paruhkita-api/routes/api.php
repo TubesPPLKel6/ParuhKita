@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\MerchantProfileController;
 use App\Http\Controllers\Api\AdminReferenceDataController;
 use App\Http\Controllers\Api\ReferenceDataController;
 use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\WorkplaceSurveyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,9 +46,13 @@ Route::prefix('v1')->group(function () {
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/reference/job-categories', [ReferenceDataController::class, 'jobCategories']);
+    Route::get('/student/workplace-surveys/companies', [WorkplaceSurveyController::class, 'companies']);
+    Route::post('/student/workplace-surveys', [WorkplaceSurveyController::class, 'store']);
     Route::get('/jobs', [JobController::class, 'index']);
+    Route::get('/jobs/{jobPost}', [JobController::class, 'show']);
     Route::post('/jobs/{jobPost}/applications', [JobController::class, 'apply']);
     Route::get('/student/applications', [JobController::class, 'studentApplications']);
+    Route::get('/student/applications/{jobApplication}/documents/{documentId}', [JobController::class, 'downloadApplicationDocument']);
     Route::get('/merchant/jobs', [JobController::class, 'merchantIndex']);
     Route::post('/merchant/jobs', [JobController::class, 'store']);
     Route::put('/merchant/jobs/{jobPost}', [JobController::class, 'update']);

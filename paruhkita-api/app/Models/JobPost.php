@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class JobPost extends Model
 {
+    protected $casts = [
+        'application_deadline' => 'date:Y-m-d',
+    ];
+
     protected $fillable = [
         'merchant_profile_id',
         'title',
@@ -15,6 +19,9 @@ class JobPost extends Model
         'wage',
         'quota',
         'description',
+        'responsibilities',
+        'qualifications',
+        'application_deadline',
         'status',
     ];
 

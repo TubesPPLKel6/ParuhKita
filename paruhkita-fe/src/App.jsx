@@ -11,8 +11,12 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import KesiapanKarier from './pages/KesiapanKarier';
 import CariLowongan from './pages/CariLowongan';
+import DetailLowongan from './pages/DetailLowongan';
+import LamarLowongan from './pages/LamarLowongan';
 import Komunitas from './pages/Komunitas';
+import SurveiKelayakan from './pages/SurveiKelayakan';
 import LamaranSaya from './pages/LamaranSaya';
+import DetailStatusLamaran from './pages/DetailStatusLamaran';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import CvList from './pages/CvList';
@@ -165,6 +169,26 @@ export default function App() {
             }
           />
           <Route
+            path="/lowongan/:jobId"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <DetailLowongan />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lowongan/:jobId/lamar"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <LamarLowongan />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/perusahaan/:id"
             element={
               <ProtectedRoute>
@@ -185,11 +209,31 @@ export default function App() {
             }
           />
           <Route
+            path="/komunitas/survei"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <SurveiKelayakan />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/lamaran"
             element={
               <ProtectedRoute>
                 <AppLayout>
                   <LamaranSaya />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lamaran/:applicationId"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <DetailStatusLamaran />
                 </AppLayout>
               </ProtectedRoute>
             }
