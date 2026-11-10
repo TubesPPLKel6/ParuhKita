@@ -7,13 +7,16 @@ import {
   Bookmark, 
   CheckCircle2, 
   ChevronDown, 
-  ArrowUpRight
+  ArrowUpRight,
+  Star
 } from 'lucide-react';
 
 export default function CariLowongan() {
   const [bookmarked, setBookmarked] = useState([]);
   const [filterJadwal, setFilterJadwal] = useState(true);
   const [jobs, setJobs] = useState([]);
+  const [surveySummaries, setSurveySummaries] = useState({});
+  const [surveySummaryError, setSurveySummaryError] = useState('');
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
@@ -32,6 +35,24 @@ export default function CariLowongan() {
       });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    const merchantIds = [...new Set(jobs.map((job) => job.merchant_profile?.id).filter(Boolean))];
+    if (merchantIds.length === 0) return undefined;
+
+    let active = true;
+    api.get('/v1/student/workplace-survey-reviews', { params: { merchant_ids: merchantIds } })
+      .then(({ data }) => {
+        if (active) {
+          setSurveySummaries(Object.fromEntries((data.data || []).map((summary) => [String(summary.id), summary])));
+        }
+      })
+      .catch((error) => {
+        if (active) setSurveySummaryError(error.response?.data?.message || 'Ringkasan survei belum dapat dimuat.');
+      });
+
+    return () => { active = false; };
+  }, [jobs]);
 
   const toggleBookmark = (id) => {
     if (bookmarked.includes(id)) {
@@ -225,6 +246,7 @@ export default function CariLowongan() {
             </div>
 
             {errorMessage && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">{errorMessage}</p>}
+            {surveySummaryError && <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800">{surveySummaryError} Daftar lowongan tetap tersedia.</p>}
             {loading && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">Memuat lowongan...</div>}
             {!loading && jobs.length === 0 && !errorMessage && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">Belum ada lowongan aktif saat ini.</div>}
 
@@ -301,6 +323,16 @@ export default function CariLowongan() {
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#00B4D8]" />
                       <span>{job.is_applied ? 'Kamu sudah melamar' : 'Dari merchant terverifikasi'}</span>
                     </div>
+
+                    {(() => {
+                      const review = surveySummaries[String(job.merchant_profile?.id)];
+                      if (!review) return null;
+                      if (review.survey_count === 0) return <p className="mt-3 rounded-md border border-[#D8E5EE] bg-white/70 px-2.5 py-2 text-[10px] text-[#536B82]">Belum ada survei tempat kerja</p>;
+                      return <div className="mt-3 rounded-md border border-[#D8E5EE] bg-white/80 p-2.5">
+                        <div className="flex items-center justify-between gap-2"><span className="text-[10px] font-bold text-[#102C4D]">Hasil survei mahasiswa</span><span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#03458C]"><Star size={11} className="fill-[#FBB02D] text-[#FBB02D]" />{Number(review.averages?.overall).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}/5</span></div>
+                        <p className="mt-1 text-[9px] text-[#536B82]">{review.survey_count} tanggapan · Upah {review.averages?.wage ?? '—'} · Jam kerja {review.averages?.hours ?? '—'} · Keamanan {review.averages?.safety ?? '—'} · Kejelasan tugas {review.averages?.tasks ?? '—'}</p>
+                      </div>;
+                    })()}
                   </div>
 
                   {/* Lamar Sekarang Button (Orange) */}

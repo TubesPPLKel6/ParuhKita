@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, BriefcaseBusiness, CalendarDays, Clock3, MapPin } from 'lucide-react';
 import api from '../api/axios';
+import ReviewMerchant from '../components/ReviewMerchant';
 
 const cardClass = 'rounded-lg border border-[#D8E5EE] bg-white p-5';
 
@@ -94,6 +95,7 @@ export default function DetailLowongan() {
             </section>
           </aside>
         </div>
+        <ReviewMerchant jobPostId={job.id} merchantId={merchant.id} />
       </main>
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#D8E5EE] bg-white px-4 py-3 shadow-lg">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">

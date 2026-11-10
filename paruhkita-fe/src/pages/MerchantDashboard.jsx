@@ -207,10 +207,11 @@ export default function MerchantDashboard() {
           <span className="font-extrabold text-lg tracking-tight">ParuhKita</span>
         </div>
         
-        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold absolute left-1/2 -translate-x-1/2">
+        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold absolute left-1/2 -translate-x-1/2 z-20">
           <button onClick={() => navigate('/merchant/dashboard')} className="text-[#00B4D8] font-bold">Dashboard</button>
           <button onClick={() => navigate('/merchant/dashboard')} className="text-slate-300 hover:text-white transition">Kandidat</button>
           <button onClick={() => navigate('/merchant/dashboard')} className="text-slate-300 hover:text-white transition">Lowongan</button>
+          <button onClick={() => navigate('/merchant/surveys')} className="text-slate-300 hover:text-white transition">Ulasan</button>
         </nav>
 
         <div className="flex items-center gap-4 z-10">
@@ -267,6 +268,9 @@ export default function MerchantDashboard() {
               </button>
               <button onClick={() => navigate('/merchant/dashboard')} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left">
                 <span>Kandidat</span>
+              </button>
+              <button onClick={() => navigate('/merchant/surveys')} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left">
+                <span>Survei Kelayakan</span>
               </button>
               <button onClick={() => navigate('/merchant/dashboard')} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left">
                 <span>Jadwal</span>

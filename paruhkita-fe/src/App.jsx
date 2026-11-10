@@ -24,6 +24,7 @@ import PortfolioList from './pages/PortfolioList';
 
 // Pages Merchant 
 import MerchantDashboard from './pages/MerchantDashboard';
+import DashboardSurveiMerchant from './pages/DashboardSurveiMerchant';
 import MerchantProfile from './pages/MerchantProfile';
 import MerchantSettings from './pages/MerchantSettings';
 import AdminMerchantVerifications from './pages/AdminMerchantVerifications';
@@ -77,6 +78,16 @@ export default function App() {
               <ProtectedRoute>
                 <MerchantLayout>
                   <MerchantDashboard />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/surveys"
+            element={
+              <ProtectedRoute>
+                <MerchantLayout>
+                  <DashboardSurveiMerchant />
                 </MerchantLayout>
               </ProtectedRoute>
             }

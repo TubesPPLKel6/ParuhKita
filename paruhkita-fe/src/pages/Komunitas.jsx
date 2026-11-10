@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   MessageSquare, 
   ThumbsUp, 
@@ -109,10 +110,10 @@ export default function Komunitas() {
               <p className="text-[11px] text-[#536B82] leading-relaxed mb-3">
                 Bantu kami memastikan semua tempat kerja di ParuhKita layak untuk mahasiswa.
               </p>
-              <a href="#" className="font-bold text-[#00B4D8] hover:underline flex items-center gap-1 text-[11px]">
+              <Link to="/komunitas/survei" className="font-bold text-[#00B4D8] hover:underline flex items-center gap-1 text-[11px]">
                 <span>Isi survei</span>
                 <ChevronRight className="w-3.5 h-3.5" />
-              </a>
+              </Link>
             </div>
           </div>
 
