@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\JobApplication;
+use App\Models\JobPost;
 use App\Models\StudentCv;
 use App\Models\StudentPortfolio;
 use Illuminate\Http\Request;
@@ -28,17 +30,21 @@ class DashboardController extends Controller
 
             $profileComplete = $this->calcProfileCompletion($user);
 
-            // ----- Dummy data untuk widget yang bergantung TUB lain -----
-            // (akan diganti dengan data real setelah TUB terkait selesai)
-            $dummyApplications = [
-                'total'     => 0,
-                'pending'   => 0,
-                'accepted'  => 0,
-                'rejected'  => 0,
+            $applications = JobApplication::where('user_id', $user->id);
+            $applicationCounts = [
+                'total' => (clone $applications)->count(),
+                'pending' => (clone $applications)->whereIn('status', ['pending', 'reviewing'])->count(),
+                'accepted' => (clone $applications)->where('status', 'accepted')->count(),
+                'rejected' => (clone $applications)->where('status', 'rejected')->count(),
             ];
+            $recommendedJobs = JobPost::where('status', 'active')
+                ->whereHas('merchantProfile', fn ($query) => $query->where('is_verified', true))
+                ->with('merchantProfile:id,merchant_name,address')
+                ->latest()
+                ->limit(3)
+                ->get();
 
-            $dummySchedules = [];   // TUB-5: jadwal kerja mendatang
-            $dummyJobs      = [];   // TUB-2: rekomendasi pekerjaan
+            $dummySchedules = [];
             $dummyBadges    = [];   // TUB-8: lencana
             $dummyRating    = null; // TUB-7: rating dari merchant
 
@@ -53,9 +59,9 @@ class DashboardController extends Controller
                     'portfolio' => [
                         'total' => $totalPortfolio,
                     ],
-                    'applications'         => $dummyApplications,
+                    'applications'         => $applicationCounts,
                     'upcoming_schedules'   => $dummySchedules,
-                    'recommended_jobs'     => $dummyJobs,
+                    'recommended_jobs'     => $recommendedJobs,
                     'badges'               => $dummyBadges,
                     'rating'               => $dummyRating,
                 ],

@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProtectedRoute({ children, requiredRole }) {
-  const { token, user, loading } = useAuth();
+export default function ProtectedRoute({ children, allowedRoles }) {
+  const { token, loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -20,8 +20,13 @@ export default function ProtectedRoute({ children, requiredRole }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/dashboard" replace />;
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    const homeByRole = {
+      admin: '/admin/merchant-verifications',
+      merchant: '/merchant/dashboard',
+      mahasiswa: '/kesiapan-karier',
+    };
+    return <Navigate to={homeByRole[user?.role] || '/login'} replace />;
   }
 
   return children;

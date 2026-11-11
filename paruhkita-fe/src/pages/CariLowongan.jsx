@@ -1,95 +1,58 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../api/axios';
 import { 
   Calendar, 
-  MapPin, 
   Clock, 
   Bookmark, 
   CheckCircle2, 
   ChevronDown, 
-  SlidersHorizontal,
   ArrowUpRight,
-  ShieldCheck
+  Star
 } from 'lucide-react';
-
-const JOBS_DATA = [
-  {
-    id: 1,
-    initials: 'KS',
-    company: 'Kopi Sela',
-    title: 'Barista paruh waktu',
-    location: 'Gejayan · 1,2 km dari UGM',
-    wage: 'Rp25.000/jam',
-    positions: 2,
-    schedule: 'Sen, Rab, Jum · 16.00–20.00',
-    duration: '4 jam/shift · 3 hari/minggu',
-    match: '100% cocok dengan jadwalmu',
-  },
-  {
-    id: 2,
-    initials: 'AB',
-    company: 'Aksara Bookshop',
-    title: 'Kasir toko buku',
-    location: 'Caturtunggal · 1,8 km dari UGM',
-    wage: 'Rp22.000/jam',
-    positions: 1,
-    schedule: 'Sel, Kam · 17.00–21.00',
-    duration: '4 jam/shift · 2 hari/minggu',
-    match: '100% cocok dengan jadwalmu',
-  },
-  {
-    id: 3,
-    initials: 'RP',
-    company: 'Roti Pagi',
-    title: 'Crew akhir pekan',
-    location: 'Pogung · 0,8 km dari UGM',
-    wage: 'Rp23.000/jam',
-    positions: 3,
-    schedule: 'Sab, Min · 08.00–12.00',
-    duration: '4 jam/shift · 2 hari/minggu',
-    match: '100% cocok dengan jadwalmu',
-  },
-  {
-    id: 4,
-    initials: 'SK',
-    company: 'Studio Kecil',
-    title: 'Admin media sosial',
-    location: 'Sagan · 2,1 km dari UGM',
-    wage: 'Rp30.000/jam',
-    positions: 1,
-    schedule: 'Sen, Rab · 17.00–20.00',
-    duration: '3 jam/shift · 2 hari/minggu',
-    match: '100% cocok dengan jadwalmu',
-  },
-  {
-    id: 5,
-    initials: 'DK',
-    company: 'Dapur Kampus',
-    title: 'Pramusaji sore',
-    location: 'Bulaksumur · 0,6 km dari UGM',
-    wage: 'Rp24.000/jam',
-    positions: 2,
-    schedule: 'Sel, Kam · 16.00–20.00',
-    duration: '4 jam/shift · 2 hari/minggu',
-    match: '100% cocok dengan jadwalmu',
-  },
-  {
-    id: 6,
-    initials: 'TT',
-    company: 'Toko Temu',
-    title: 'Asisten toko',
-    location: 'Seturan · 2,8 km dari UGM',
-    wage: 'Rp22.000/jam',
-    positions: 2,
-    schedule: 'Sab · 13.00–17.00',
-    duration: '4 jam/shift · 1 hari/minggu',
-    match: '100% cocok dengan jadwalmu',
-  },
-];
 
 export default function CariLowongan() {
   const [bookmarked, setBookmarked] = useState([]);
   const [filterJadwal, setFilterJadwal] = useState(true);
+  const [jobs, setJobs] = useState([]);
+  const [surveySummaries, setSurveySummaries] = useState({});
+  const [surveySummaryError, setSurveySummaryError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    api.get('/v1/jobs')
+      .then(({ data }) => {
+        if (active) setJobs(data.data || []);
+      })
+      .catch((error) => {
+        if (active) setErrorMessage(error.response?.data?.message || (error.request ? 'Tidak dapat memuat lowongan. Coba lagi.' : error.message));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    const merchantIds = [...new Set(jobs.map((job) => job.merchant_profile?.id).filter(Boolean))];
+    if (merchantIds.length === 0) return undefined;
+
+    let active = true;
+    api.get('/v1/student/workplace-survey-reviews', { params: { merchant_ids: merchantIds } })
+      .then(({ data }) => {
+        if (active) {
+          setSurveySummaries(Object.fromEntries((data.data || []).map((summary) => [String(summary.id), summary])));
+        }
+      })
+      .catch((error) => {
+        if (active) setSurveySummaryError(error.response?.data?.message || 'Ringkasan survei belum dapat dimuat.');
+      });
+
+    return () => { active = false; };
+  }, [jobs]);
 
   const toggleBookmark = (id) => {
     if (bookmarked.includes(id)) {
@@ -271,7 +234,7 @@ export default function CariLowongan() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-base font-bold text-[#03045E]">Peluang yang pas untukmu</h2>
-                <p className="text-xs text-[#536B82]">6 lowongan sesuai jadwal &middot; Terkurasi di sekitarmu</p>
+                <p className="text-xs text-[#536B82]">{jobs.length} lowongan aktif dari merchant terverifikasi</p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -281,6 +244,11 @@ export default function CariLowongan() {
                 </button>
               </div>
             </div>
+
+            {errorMessage && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">{errorMessage}</p>}
+            {surveySummaryError && <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800">{surveySummaryError} Daftar lowongan tetap tersedia.</p>}
+            {loading && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">Memuat lowongan...</div>}
+            {!loading && jobs.length === 0 && !errorMessage && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">Belum ada lowongan aktif saat ini.</div>}
 
             {/* Active filter pills */}
             <div className="flex flex-wrap gap-2 text-xs">
@@ -297,23 +265,27 @@ export default function CariLowongan() {
 
             {/* Cards 3x2 Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {JOBS_DATA.map((job) => (
+              {jobs.map((job) => (
                 <div 
                   key={job.id} 
                   className="bg-[#CAF0F8]/40 border border-[#00B4D8]/30 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition"
+                  onClick={() => navigate(`/lowongan/${job.id}`)}
+                  onKeyDown={(event) => { if (event.key === 'Enter') navigate(`/lowongan/${job.id}`); }}
+                  role="link"
+                  tabIndex={0}
                 >
                   <div>
                     {/* Top row: Company & Bookmark */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl bg-white border border-[#D8E5EE] flex items-center justify-center font-bold text-xs text-[#023E8A] shadow-2xs">
-                          {job.initials}
+                          {(job.merchant_profile?.merchant_name || 'PK').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="text-xs font-bold text-[#102C4D]">{job.company}</span>
+                        <span className="text-xs font-bold text-[#102C4D]">{job.merchant_profile?.merchant_name || 'Merchant'}</span>
                       </div>
 
                       <button 
-                        onClick={() => toggleBookmark(job.id)}
+                        onClick={(event) => { event.stopPropagation(); toggleBookmark(job.id); }}
                         className="text-[#536B82] hover:text-[#023E8A] transition p-1"
                         title="Simpan Lowongan"
                       >
@@ -323,14 +295,15 @@ export default function CariLowongan() {
 
                     {/* Job Title */}
                     <h3 className="text-sm font-extrabold text-[#03045E] mt-3">{job.title}</h3>
-                    <p className="text-[11px] text-[#536B82] mt-0.5">{job.location}</p>
+                    <p className="text-[11px] text-[#536B82] mt-0.5">{job.merchant_profile?.address || 'Lokasi tidak dicantumkan'}</p>
+                    <p className="text-[10px] text-[#536B82] mt-1">{[job.category, job.subcategory].filter(Boolean).join(' · ')}</p>
 
                     {/* Wage & Positions Pill */}
                     <div className="flex items-center justify-between mt-3">
                       <span className="px-2.5 py-1 bg-[#03045E] text-white text-xs font-bold rounded-lg">
                         {job.wage}
                       </span>
-                      <span className="text-[11px] text-[#536B82] font-semibold">{job.positions} posisi</span>
+                      <span className="text-[11px] text-[#536B82] font-semibold">{job.quota}</span>
                     </div>
 
                     {/* Schedule Details */}
@@ -341,23 +314,33 @@ export default function CariLowongan() {
                       </p>
                       <p className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-[#023E8A]" />
-                        <span>{job.duration}</span>
+                        <span>{job.description || 'Informasi pekerjaan dari merchant'}</span>
                       </p>
                     </div>
 
                     {/* Match Badge */}
                     <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-[#023E8A]">
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#00B4D8]" />
-                      <span>{job.match}</span>
+                      <span>{job.is_applied ? 'Kamu sudah melamar' : 'Dari merchant terverifikasi'}</span>
                     </div>
+
+                    {(() => {
+                      const review = surveySummaries[String(job.merchant_profile?.id)];
+                      if (!review) return null;
+                      if (review.survey_count === 0) return <p className="mt-3 rounded-md border border-[#D8E5EE] bg-white/70 px-2.5 py-2 text-[10px] text-[#536B82]">Belum ada survei tempat kerja</p>;
+                      return <div className="mt-3 rounded-md border border-[#D8E5EE] bg-white/80 p-2.5">
+                        <div className="flex items-center justify-between gap-2"><span className="text-[10px] font-bold text-[#102C4D]">Hasil survei mahasiswa</span><span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#03458C]"><Star size={11} className="fill-[#FBB02D] text-[#FBB02D]" />{Number(review.averages?.overall).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}/5</span></div>
+                        <p className="mt-1 text-[9px] text-[#536B82]">{review.survey_count} tanggapan · Upah {review.averages?.wage ?? '—'} · Jam kerja {review.averages?.hours ?? '—'} · Keamanan {review.averages?.safety ?? '—'} · Kejelasan tugas {review.averages?.tasks ?? '—'}</p>
+                      </div>;
+                    })()}
                   </div>
 
                   {/* Lamar Sekarang Button (Orange) */}
                   <button 
-                    onClick={() => alert(`Lamaran untuk posisi "${job.title}" di ${job.company} berhasil diajukan!`)}
-                    className="mt-4 w-full py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-white font-bold text-xs rounded-xl shadow-xs transition"
+                    onClick={(event) => { event.stopPropagation(); navigate(`/lowongan/${job.id}`); }}
+                    className="mt-4 w-full py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-white font-bold text-xs rounded-xl shadow-xs transition disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Lamar Sekarang
+                    {job.is_applied ? 'Lihat Lamaran' : 'Lamar Sekarang'}
                   </button>
                 </div>
               ))}

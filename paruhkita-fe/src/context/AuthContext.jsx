@@ -29,14 +29,17 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    if (res.data.status) {
-      const { token: receivedToken, user: receivedUser } = res.data.data;
-      localStorage.setItem('pk_token', receivedToken);
-      localStorage.setItem('pk_user', JSON.stringify(receivedUser));
-      setToken(receivedToken);
-      setUser(receivedUser);
-      return res.data;
+    const { status, data, message } = res.data;
+    if (!status || !data?.token || !data?.user) {
+      throw new Error(message || 'Respons login dari server tidak valid.');
     }
+
+    const { token: receivedToken, user: receivedUser } = data;
+    localStorage.setItem('pk_token', receivedToken);
+    localStorage.setItem('pk_user', JSON.stringify(receivedUser));
+    setToken(receivedToken);
+    setUser(receivedUser);
+    return res.data;
   };
 
   const logout = async () => {
