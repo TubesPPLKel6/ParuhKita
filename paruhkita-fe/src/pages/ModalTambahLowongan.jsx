@@ -15,6 +15,9 @@ export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan,
     upah: job?.wage || 'Rp18.000 / jam',
     kuota: job?.quota || '2 orang',
     deskripsi: job?.description || '',
+    responsibilities: job?.responsibilities || '',
+    qualifications: job?.qualifications || '',
+    application_deadline: job?.application_deadline || '',
   }));
 
   useEffect(() => {
@@ -73,6 +76,9 @@ export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan,
         schedule: formData.jamKerja.trim(),
         wage: formData.upah.trim(),
         description: formData.deskripsi.trim() || null,
+        responsibilities: formData.responsibilities.trim() || null,
+        qualifications: formData.qualifications.trim() || null,
+        application_deadline: formData.application_deadline || null,
       });
       onClose();
     } catch (error) {
@@ -193,6 +199,41 @@ export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan,
               onChange={handleChange}
               className="w-full bg-[#F6F9FC] border border-[#D8E5EE] rounded-xl px-3.5 py-2.5 text-xs text-[#03045E] focus:outline-none focus:border-[#00B4D8]"
             ></textarea>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-semibold text-[#03045E] mb-1">Tanggung Jawab</label>
+              <textarea
+                name="responsibilities"
+                rows="3"
+                value={formData.responsibilities}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-[#D8E5EE] bg-[#F6F9FC] px-3.5 py-2.5 text-xs text-[#03045E] focus:border-[#00B4D8] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#03045E] mb-1">Kualifikasi</label>
+              <textarea
+                name="qualifications"
+                rows="3"
+                value={formData.qualifications}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-[#D8E5EE] bg-[#F6F9FC] px-3.5 py-2.5 text-xs text-[#03045E] focus:border-[#00B4D8] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#03045E] mb-1">Batas Akhir Lamaran</label>
+            <input
+              type="date"
+              name="application_deadline"
+              min={new Date().toISOString().slice(0, 10)}
+              value={formData.application_deadline ? formData.application_deadline.slice(0, 10) : ''}
+              onChange={handleChange}
+              className="w-full rounded-xl border border-[#D8E5EE] bg-[#F6F9FC] px-3.5 py-2.5 text-xs text-[#03045E] focus:border-[#00B4D8] focus:outline-none"
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-2 border-t border-[#D8E5EE]">

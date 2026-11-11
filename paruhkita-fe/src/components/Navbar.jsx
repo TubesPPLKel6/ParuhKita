@@ -44,7 +44,7 @@ export default function Navbar() {
             {/* Nav Tabs */}
             <nav className="hidden md:flex items-center gap-6 text-sm">
               {navItems.map((item) => {
-                const isActive = location.pathname === item.to;
+                const isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
                 return (
                   <Link
                     key={item.to}

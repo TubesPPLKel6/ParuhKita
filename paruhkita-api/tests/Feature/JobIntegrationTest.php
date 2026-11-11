@@ -6,6 +6,8 @@ use App\Models\JobCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class JobIntegrationTest extends TestCase
@@ -14,6 +16,7 @@ class JobIntegrationTest extends TestCase
 
     public function test_merchant_job_is_visible_to_students_and_applications_return_to_merchant(): void
     {
+        Storage::fake('local');
         $merchant = $this->createUser('merchant', 'merchant-jobs@test.local');
         $merchant->merchantProfile()->create([
             'merchant_name' => 'Kedai Contoh',
@@ -63,14 +66,21 @@ class JobIntegrationTest extends TestCase
             ->assertJsonPath('data.0.merchant_profile.merchant_name', 'Kedai Contoh')
             ->assertJsonPath('data.0.is_applied', false);
 
-        $this->postJson("/api/v1/jobs/{$job['id']}/applications")
+        $this->actingAs($student, 'sanctum')
+            ->postJson("/api/v1/jobs/{$job['id']}/applications", ['motivation' => 'Saya tertarik dengan pekerjaan ini.'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['cv', 'student_id']);
+
+        $this->post("/api/v1/jobs/{$job['id']}/applications", $this->validApplicationData())
             ->assertCreated()
             ->assertJsonPath('data.status', 'pending');
 
         $this->getJson('/api/v1/student/applications')
             ->assertOk()
             ->assertJsonPath('data.0.job_post.title', 'Barista Sore')
-            ->assertJsonPath('data.0.job_post.merchant_profile.merchant_name', 'Kedai Contoh');
+            ->assertJsonPath('data.0.job_post.merchant_profile.merchant_name', 'Kedai Contoh')
+            ->assertJsonCount(2, 'data.0.documents')
+            ->assertJsonPath('data.0.status_histories.0.status', 'pending');
 
         $applicationId = $this->actingAs($merchant, 'sanctum')
             ->getJson('/api/v1/merchant/jobs')
@@ -96,6 +106,7 @@ class JobIntegrationTest extends TestCase
 
     public function test_students_cannot_apply_twice_and_unverified_merchants_cannot_publish(): void
     {
+        Storage::fake('local');
         $merchant = $this->createUser('merchant', 'unverified@test.local');
         $merchant->merchantProfile()->create([
             'merchant_name' => 'Belum Terverifikasi',
@@ -135,11 +146,20 @@ class JobIntegrationTest extends TestCase
 
         $student = $this->createUser('mahasiswa', 'applicant@test.local');
         $this->actingAs($student, 'sanctum')
-            ->postJson("/api/v1/jobs/{$job->id}/applications")
+            ->post("/api/v1/jobs/{$job->id}/applications", $this->validApplicationData())
             ->assertCreated();
-        $this->postJson("/api/v1/jobs/{$job->id}/applications")
+        $this->postJson("/api/v1/jobs/{$job->id}/applications", ['motivation' => 'Saya tertarik dengan pekerjaan ini dan siap berkontribusi.'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('job');
+    }
+
+    private function validApplicationData(): array
+    {
+        return [
+            'motivation' => 'Saya tertarik dengan pekerjaan ini dan siap berkontribusi.',
+            'cv' => UploadedFile::fake()->create('CV.pdf', 200, 'application/pdf'),
+            'student_id' => UploadedFile::fake()->create('KTM.pdf', 200, 'application/pdf'),
+        ];
     }
 
     private function createUser(string $role, string $email): User
