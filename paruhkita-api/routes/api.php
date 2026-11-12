@@ -59,6 +59,11 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::delete('/merchant/jobs/{jobPost}', [JobController::class, 'destroy']);
     Route::patch('/merchant/applications/{jobApplication}', [JobController::class, 'updateApplication']);
 
+    Route::get('/merchant/jobs/{jobPost}/applicants', [JobController::class, 'merchantJobApplicants']);
+    Route::get('/merchant/applications/{jobApplication}', [JobController::class, 'merchantApplicationDetail']);
+    Route::get('/merchant/applications/{jobApplication}/documents/{documentId}', [JobController::class, 'merchantDownloadDocument']);
+
+
     Route::prefix('admin/reference-data')->group(function () {
         Route::get('/', [AdminReferenceDataController::class, 'index']);
         Route::post('/campuses', [AdminReferenceDataController::class, 'storeCampus']);

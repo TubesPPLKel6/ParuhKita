@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('file_path');
             $table->string('original_name');
             $table->timestamps();
-            $table->unique(['merchant_profile_id', 'document_type']);
+            $table->unique(['merchant_profile_id', 'document_type'], 'mvd_profile_doc_type_unique');
         });
     }
 

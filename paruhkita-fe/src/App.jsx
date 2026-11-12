@@ -24,6 +24,8 @@ import PortfolioList from './pages/PortfolioList';
 
 // Pages Merchant 
 import MerchantDashboard from './pages/MerchantDashboard';
+import KelolaPelamarLowongan from './pages/KelolaPelamarLowongan';
+import DetailPelamar from './pages/DetailPelamar';
 import DashboardSurveiMerchant from './pages/DashboardSurveiMerchant';
 import MerchantProfile from './pages/MerchantProfile';
 import MerchantSettings from './pages/MerchantSettings';
@@ -82,6 +84,29 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+                 <Route
+         path="/merchant/jobs/:jobId/applicants"
+         element={
+           <ProtectedRoute>
+             <MerchantLayout>
+               <KelolaPelamarLowongan />
+             </MerchantLayout>
+           </ProtectedRoute>
+         }
+       />
+       <Route
+         path="/merchant/applications/:applicationId"
+         element={
+           <ProtectedRoute>
+             <MerchantLayout>
+               <DetailPelamar />
+             </MerchantLayout>
+           </ProtectedRoute>
+         }
+       />
+
+
           <Route
             path="/merchant/surveys"
             element={

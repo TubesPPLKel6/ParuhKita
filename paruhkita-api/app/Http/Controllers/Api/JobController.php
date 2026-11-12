@@ -225,6 +225,70 @@ class JobController extends Controller
         ]);
     }
 
+        public function merchantJobApplicants(Request $request, JobPost $jobPost)
+    {
+        $profile = $this->verifiedMerchantProfile($request);
+        abort_unless($jobPost->merchant_profile_id === $profile->id, 404, 'Lowongan tidak ditemukan.');
+
+        $query = $jobPost->applications()
+            ->with([
+                'student:id,name,email',
+                'student.studentProfile',
+                'documents:id,job_application_id,document_type,original_name,mime_type,file_size',
+                'statusHistories',
+            ])
+            ->latest();
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'job' => $jobPost->only(['id', 'title', 'category', 'subcategory', 'schedule', 'wage', 'quota', 'status', 'application_deadline']),
+                'applicants' => $query->get(),
+            ],
+        ]);
+    }
+
+    public function merchantApplicationDetail(Request $request, JobApplication $jobApplication)
+    {
+        $profile = $this->verifiedMerchantProfile($request);
+        abort_unless($jobApplication->jobPost()->where('merchant_profile_id', $profile->id)->exists(), 404, 'Lamaran tidak ditemukan.');
+
+        $jobApplication->load([
+            'jobPost:id,merchant_profile_id,title,category,subcategory,schedule,wage,quota,application_deadline',
+            'student:id,name,email,phone',
+            'student.studentProfile',
+            'student.studentSkills',
+            'student.studentAvailabilities',
+            'student.studentCvs',
+            'student.studentPortfolios',
+            'documents',
+            'statusHistories',
+        ]);
+
+
+        return response()->json([
+            'status' => true,
+            'data' => $jobApplication,
+        ]);
+    }
+
+    public function merchantDownloadDocument(Request $request, JobApplication $jobApplication, $documentId)
+    {
+        $profile = $this->verifiedMerchantProfile($request);
+        abort_unless($jobApplication->jobPost()->where('merchant_profile_id', $profile->id)->exists(), 404, 'Lamaran tidak ditemukan.');
+
+        $document = $jobApplication->documents()->findOrFail($documentId);
+        abort_unless(Storage::disk('local')->exists($document->file_path), 404, 'File dokumen tidak ditemukan.');
+
+        return Storage::disk('local')->download($document->file_path, $document->original_name);
+    }
+
+
+
     private function verifiedMerchantProfile(Request $request)
     {
         abort_unless($request->user()->role === 'merchant', 403, 'Akses hanya untuk merchant.');
