@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, BriefcaseBusiness, CalendarDays, Clock3, MapPin } from 'lucide-react';
-import api from '../api/axios';
-import ReviewMerchant from '../components/ReviewMerchant';
+import api from '../../api/axios';
+import ReviewMerchant from '../../components/ReviewMerchant';
 
 const cardClass = 'rounded-lg border border-[#D8E5EE] bg-white p-5';
 

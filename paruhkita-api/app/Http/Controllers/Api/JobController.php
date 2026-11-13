@@ -280,7 +280,6 @@ class JobController extends Controller
             'statusHistories',
             'feedbackReport:id,job_application_id,status',
         ]);
-
         return response()->json([
             'status' => true,
             'data' => $jobApplication,

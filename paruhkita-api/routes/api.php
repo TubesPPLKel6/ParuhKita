@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\MerchantScheduleController;
 use App\Http\Controllers\Api\StudentApplicationController;
 use App\Http\Controllers\Api\ApplicationFeedbackController;
 use App\Http\Controllers\Api\WorkplaceSurveyController;
+use App\Http\Controllers\Api\StudentVerificationController;
+use App\Http\Controllers\Api\AdminVerificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,7 +52,10 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/reference/job-categories', [ReferenceDataController::class, 'jobCategories']);
     Route::get('/student/workplace-surveys/companies', [WorkplaceSurveyController::class, 'companies']);
+    Route::get('/student/workplace-survey-reviews', [WorkplaceSurveyController::class, 'studentSummaries']);
     Route::post('/student/workplace-surveys', [WorkplaceSurveyController::class, 'store']);
+    Route::get('/job-posts/{jobPost}/merchant-reviews', [WorkplaceSurveyController::class, 'jobReviews']);
+    Route::get('/merchants/{merchantProfile}/surveys', [WorkplaceSurveyController::class, 'merchantIndex']);
     Route::get('/jobs', [JobController::class, 'index']);
     Route::get('/jobs/{jobPost}', [JobController::class, 'show']);
     Route::post('/jobs/{jobPost}/applications', [JobController::class, 'apply']);
@@ -103,6 +108,15 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::delete('/merchant/profile', [MerchantProfileController::class, 'destroy']);
 
     Route::post('/merchant/verification', [MerchantVerificationController::class, 'submit']);
+    Route::post('/student/verification', [StudentVerificationController::class, 'submit']);
+    Route::get('/student/verification-status', [StudentVerificationController::class, 'status']);
+    Route::get('/admin/verifications', [AdminVerificationController::class, 'index']);
+    Route::get('/admin/verifications/{type}/{profileId}/document', [AdminVerificationController::class, 'streamDocument']);
+    Route::get('/admin/verifications/{type}/{profileId}/documents/{documentId}', [AdminVerificationController::class, 'streamDocument']);
+    Route::post('/admin/verifications/batch-approve', [AdminVerificationController::class, 'batchApprove']);
+    Route::post('/admin/verifications/{type}/{id}/approve', [AdminVerificationController::class, 'approve']);
+    Route::post('/admin/verifications/{type}/{id}/request-revision', [AdminVerificationController::class, 'requestRevision']);
+    Route::post('/admin/verifications/{type}/{id}/reject', [AdminVerificationController::class, 'reject']);
     Route::get('/admin/merchant-verifications', [MerchantVerificationController::class, 'index']);
     Route::get('/admin/merchant-verifications/documents/{document}', [MerchantVerificationController::class, 'downloadDocument']);
     Route::post('/admin/merchant-verifications/{merchantProfile}/approve', [MerchantVerificationController::class, 'approve']);
@@ -110,6 +124,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // --- DASHBOARD ---
     Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
+    Route::get('/admin/dashboard', [DashboardController::class, 'adminSummary']);
 
     // --- PROFILE ---
     Route::get('/profile',            [ProfileController::class, 'show']);

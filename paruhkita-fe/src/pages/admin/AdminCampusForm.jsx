@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 const EMPTY_CAMPUS = { name: '', code: '', city: '', status: 'active', accreditation: '' };
 const ACCREDITATIONS = ['Unggul', 'A', 'B', 'C', 'Baik Sekali', 'Baik'];

@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import api from '../api/axios';
-import CompanyExperienceStep from '../components/survei/CompanyExperienceStep';
-import RatingStep from '../components/survei/RatingStep';
-import ReviewStep from '../components/survei/ReviewStep';
-import SuccessStep from '../components/survei/SuccessStep';
-import SurveyShell from '../components/survei/SurveyShell';
-import { categoryAverage, SURVEY_CATEGORIES } from '../components/survei/surveyData';
+import api from '../../api/axios';
+import CompanyExperienceStep from '../../components/survei/CompanyExperienceStep';
+import RatingStep from '../../components/survei/RatingStep';
+import ReviewStep from '../../components/survei/ReviewStep';
+import SuccessStep from '../../components/survei/SuccessStep';
+import SurveyShell from '../../components/survei/SurveyShell';
+import { categoryAverage, SURVEY_CATEGORIES } from '../../components/survei/surveyData';
 
 const initialValues = { merchant_profile_id: '', position: '', department: '', start_date: '', end_date: '', confirmed: false };
 const initialRatings = Object.fromEntries(SURVEY_CATEGORIES.map((category) => [category.id, [null, null, null, null]]));

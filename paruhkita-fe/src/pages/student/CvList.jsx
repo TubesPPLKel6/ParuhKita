@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api/axios';
-import { downloadElementAsPdf } from '../utils/pdfGenerator';
+import api from '../../api/axios';
+import { downloadElementAsPdf } from '../../utils/pdfGenerator';
 import { 
   FileText, 
   Printer, 

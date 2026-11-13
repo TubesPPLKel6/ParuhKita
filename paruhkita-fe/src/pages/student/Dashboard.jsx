@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axios';
 import { 
   FileText, 
   Briefcase, 

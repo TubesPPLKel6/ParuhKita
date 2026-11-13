@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, FileText, LockKeyhole, Upload, XCircle } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 const steps = ['Detail lowongan', 'Formulir pengajuan', 'Persyaratan', 'Konfirmasi'];
 const requiredDocuments = [

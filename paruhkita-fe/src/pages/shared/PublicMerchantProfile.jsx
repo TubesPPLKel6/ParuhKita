@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Building, MapPin, Phone, Mail } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 const FACILITY_CATEGORIES = {
   dining: 'Makan/minum',

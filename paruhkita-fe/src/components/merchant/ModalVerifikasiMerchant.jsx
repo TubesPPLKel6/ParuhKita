@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle2, FileText, Upload, X } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 const requiredDocuments = [
   { key: 'ktp', label: 'KTP pemilik usaha' },

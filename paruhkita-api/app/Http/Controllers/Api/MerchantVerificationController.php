@@ -66,6 +66,8 @@ class MerchantVerificationController extends Controller
                     'verification_status' => 'pending',
                     'verification_submitted_at' => now(),
                     'verification_note' => null,
+                    'verified_at' => null,
+                    'verified_by_user_id' => null,
                 ]);
             });
         } catch (\Throwable $exception) {
@@ -115,6 +117,8 @@ class MerchantVerificationController extends Controller
             'is_verified' => true,
             'verification_status' => 'approved',
             'verification_note' => null,
+            'verified_at' => now(),
+            'verified_by_user_id' => $request->user()->id,
         ]);
 
         return response()->json([
@@ -137,6 +141,8 @@ class MerchantVerificationController extends Controller
             'is_verified' => false,
             'verification_status' => 'rejected',
             'verification_note' => $validated['note'],
+            'verified_at' => null,
+            'verified_by_user_id' => $request->user()->id,
         ]);
 
         return response()->json([

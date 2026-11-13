@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Briefcase, PlusCircle } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan, job }) {
   const [categories, setCategories] = useState([]);

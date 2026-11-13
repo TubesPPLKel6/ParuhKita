@@ -212,6 +212,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        if ($this->command && app()->environment('local')) {
+            $this->call(VerificationDemoSeeder::class);
+        }
+
         $this->command->info('Seeder selesai! Akun testing:');
         $this->command->table(
             ['Role', 'Email', 'Password'],

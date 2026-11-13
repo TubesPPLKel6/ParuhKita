@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, BriefcaseBusiness, Building2, ChevronDown, ChevronLeft, ChevronRight, CircleCheck, Download, GraduationCap, Pencil, Plus, Search, Tags, Trash2, X } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 const TABS = [
   { id: 'campuses', label: 'Kampus' },

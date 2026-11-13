@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, BriefcaseBusiness, CalendarDays, ClipboardList, LogOut, MessageSquare, Settings, Users } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
-import { SURVEY_CATEGORIES } from '../components/survei/surveyData';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axios';
+import { SURVEY_CATEGORIES } from '../../components/survei/surveyData';
 
 function formattedScore(score) {
   return score == null ? '—' : Number(score).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 2 });

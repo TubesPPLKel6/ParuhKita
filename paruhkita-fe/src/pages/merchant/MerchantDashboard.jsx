@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axios';
 import { 
   Briefcase, 
   Users, 
@@ -16,8 +16,8 @@ import {
   ChevronDown,
   LogOut
 } from 'lucide-react';
-import ModalTambahLowongan from "./ModalTambahLowongan";
-import ModalVerifikasiMerchant from './ModalVerifikasiMerchant';
+import ModalTambahLowongan from '../../components/merchant/ModalTambahLowongan';
+import ModalVerifikasiMerchant from '../../components/merchant/ModalVerifikasiMerchant';
 
 export default function MerchantDashboard() {
   const { user, logout, setUser } = useAuth();
@@ -471,27 +471,38 @@ export default function MerchantDashboard() {
                         <td className="py-3.5 px-4 font-semibold text-[#03045E]">{k.cocok}</td>
                         <td className="py-3.5 px-4 text-[#536B82]">{k.pembaruan}</td>
                         <td className="py-3.5 px-4 text-right">
-                          {k.status !== 'rejected' && (
-                            <div className="inline-flex items-center gap-2">
-                              <select
-                                aria-label={`Perbarui tahap lamaran ${k.nama}`}
-                                value={k.status}
-                                onChange={(event) => handleApplicationStatus(k.id, event.target.value)}
-                                className="max-w-36 rounded-lg border border-[#D8E5EE] bg-white px-2 py-1.5 text-[10px]"
-                              >
-                                <option value="pending">Melamar</option>
-                                <option value="reviewing">Meninjau</option>
-                                <option value="interview">Jadwalkan wawancara</option>
-                                <option value="trial">Trial shift</option>
-                                <option value="accepted">Terima</option>
-                              </select>
-                              <button 
-                                onClick={() => setModalFeedback({ sedangBuka: true, pelamar: k })}
-                                className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg text-[11px] transition shadow-xs">
-                                Tolak
-                              </button>
-                            </div>
-                          )}
+                          <div className="inline-flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/merchant/applications/${k.id}`)}
+                              className="px-3 py-1.5 border border-[#D8E5EE] hover:border-[#023E8A] text-[#023E8A] font-bold rounded-lg text-[11px] transition bg-white"
+                            >
+                              Detail &amp; CV
+                            </button>
+                            {k.status !== 'rejected' && (
+                              <>
+                                <select
+                                  aria-label={`Perbarui tahap lamaran ${k.nama}`}
+                                  value={k.status}
+                                  onChange={(event) => handleApplicationStatus(k.id, event.target.value)}
+                                  className="max-w-36 rounded-lg border border-[#D8E5EE] bg-white px-2 py-1.5 text-[10px]"
+                                >
+                                  <option value="pending">Melamar</option>
+                                  <option value="reviewing">Meninjau</option>
+                                  <option value="interview">Jadwalkan wawancara</option>
+                                  <option value="trial">Trial shift</option>
+                                  <option value="accepted">Terima</option>
+                                </select>
+                                <button
+                                  type="button"
+                                  onClick={() => setModalFeedback({ sedangBuka: true, pelamar: k })}
+                                  className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg text-[11px] transition shadow-xs"
+                                >
+                                  Tolak
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -521,7 +532,14 @@ export default function MerchantDashboard() {
                   </div>
                   <div className="mt-5 pt-4 border-t border-[#D8E5EE] flex items-center justify-between">
                     <span className="text-xs font-black text-[#023E8A]">{l.upah}</span>
-                    <span className="text-xs font-bold text-[#023E8A] cursor-pointer">Kelola &rarr;</span>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/merchant/jobs/${l.id}/applicants`)}
+                      className="text-xs font-bold text-[#023E8A] hover:underline cursor-pointer"
+                    >
+                  Lihat Pelamar ({l.applications_count || 0}) &rarr;
+                </button>
+
                   </div>
                 </div>
               ))}

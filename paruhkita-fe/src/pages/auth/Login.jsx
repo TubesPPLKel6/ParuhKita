@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, ArrowRight, UserCheck, Store, AlertCircle } from 'lucide-react';
 
 export default function Login() {
@@ -45,7 +45,7 @@ export default function Login() {
       const userData = result.data.user;
 
       if (userData.role === 'admin') {
-        navigate('/admin/merchant-verifications');
+         navigate('/admin/dashboard');
       } else if (userData.role === 'merchant') {
         navigate('/merchant/dashboard');
       } else {

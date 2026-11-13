@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, FileText, LogOut, RefreshCw, XCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
+import { AlertCircle, CheckCircle2, FileText, RefreshCw, XCircle } from 'lucide-react';
+import api from '../../api/axios';
 
 const documentLabels = {
   ktp: 'KTP pemilik usaha',
@@ -13,8 +11,6 @@ const documentLabels = {
 };
 
 export default function AdminMerchantVerifications() {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [notes, setNotes] = useState({});
   const [loading, setLoading] = useState(true);
@@ -102,29 +98,8 @@ export default function AdminMerchantVerifications() {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login', { replace: true });
-  };
-
   return (
     <div className="min-h-screen bg-[#F6F9FC]">
-      <header className="flex items-center justify-between bg-[#03045E] px-6 py-4 text-white shadow-sm">
-        <div>
-          <p className="text-lg font-extrabold">ParuhKita</p>
-          <p className="text-xs text-slate-300">Panel verifikasi merchant</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={() => navigate('/admin/reference-data')} className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold transition hover:bg-white/10">
-            Master data
-          </button>
-          <button type="button" onClick={handleLogout} className="flex items-center gap-2 rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold transition hover:bg-white/10">
-            <LogOut className="h-4 w-4" />
-            Keluar
-          </button>
-        </div>
-      </header>
-
       <main className="mx-auto max-w-5xl space-y-5 p-6 lg:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

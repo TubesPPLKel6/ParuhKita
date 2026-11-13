@@ -10,8 +10,8 @@ import {
   Star,
   X,
 } from 'lucide-react';
-import api from '../api/axios';
-import StudentShell from '../components/student/StudentShell';
+import api from '../../api/axios';
+import StudentShell from '../../components/student/StudentShell';
 
 const BADGE_STYLES = {
   done: 'bg-[#E9F9F1] text-[#1F9D63]',

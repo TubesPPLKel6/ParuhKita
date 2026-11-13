@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 const EMPTY_PROGRAM = { name: '', code: '', campus_id: '', degree_level: '', status: '' };
 const EMPTY_CATEGORY = { name: '', description: '', status: '' };

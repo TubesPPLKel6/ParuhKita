@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BriefcaseBusiness, CheckCircle2, Clock3, FileText, Search } from 'lucide-react';
-import api from '../api/axios';
-import StudentShell from '../components/student/StudentShell';
+import api from '../../api/axios';
+import StudentShell from '../../components/student/StudentShell';
 
 const STATUS_LABELS = {
   pending: 'Menunggu Review Merchant',

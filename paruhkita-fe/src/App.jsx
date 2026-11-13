@@ -7,39 +7,41 @@ import Footer from './components/Footer';
 
 
 // Pages Mahasiswa 
-import Login from './pages/Login';
-import Register from './pages/Register';
-import KesiapanKarier from './pages/KesiapanKarier';
-import CariLowongan from './pages/CariLowongan';
-import DetailLowongan from './pages/DetailLowongan';
-import LamarLowongan from './pages/LamarLowongan';
-import Komunitas from './pages/Komunitas';
-import SurveiKelayakan from './pages/SurveiKelayakan';
-import LamaranSaya from './pages/LamaranSaya';
-import DetailStatusLamaran from './pages/DetailStatusLamaran';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import KesiapanKarier from './pages/student/KesiapanKarier';
+import CariLowongan from './pages/student/CariLowongan';
+import DetailLowongan from './pages/student/DetailLowongan';
+import LamarLowongan from './pages/student/LamarLowongan';
+import Komunitas from './pages/student/Komunitas';
+import SurveiKelayakan from './pages/student/SurveiKelayakan';
+import LamaranSaya from './pages/student/LamaranSaya';
+import DetailStatusLamaran from './pages/student/DetailStatusLamaran';
 import DetailLamaranAnda from './pages/DetailLamaranAnda';
 import DokumenMasukan from './pages/DokumenMasukan';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import CvList from './pages/CvList';
-import PortfolioList from './pages/PortfolioList';
+import Dashboard from './pages/student/Dashboard';
+import Profile from './pages/student/Profile';
+import CvList from './pages/student/CvList';
+import PortfolioList from './pages/student/PortfolioList';
 
 // Pages Merchant 
-import MerchantDashboard from './pages/MerchantDashboard';
+import MerchantDashboard from './pages/merchant/MerchantDashboard';
 import MerchantJadwal from './pages/MerchantJadwal';
 import MerchantFeedback from './pages/MerchantFeedback';
 import MerchantFeedbackSuccess from './pages/MerchantFeedbackSuccess';
 import MerchantCandidates from './pages/MerchantCandidates';
-import KelolaPelamarLowongan from './pages/KelolaPelamarLowongan';
-import DetailPelamar from './pages/DetailPelamar';
-import DashboardSurveiMerchant from './pages/DashboardSurveiMerchant';
-import MerchantProfile from './pages/MerchantProfile';
-import MerchantSettings from './pages/MerchantSettings';
-import AdminMerchantVerifications from './pages/AdminMerchantVerifications';
-import PublicMerchantProfile from './pages/PublicMerchantProfile';
-import AdminReferenceData from './pages/AdminReferenceData';
-import AdminCampusForm from './pages/AdminCampusForm';
-import AdminMasterForm from './pages/AdminMasterForm';
+import KelolaPelamarLowongan from './pages/merchant/KelolaPelamarLowongan';
+import DetailPelamar from './pages/merchant/DetailPelamar';
+import DashboardSurveiMerchant from './pages/merchant/DashboardSurveiMerchant';
+import MerchantProfile from './pages/merchant/MerchantProfile';
+import MerchantSettings from './pages/merchant/MerchantSettings';
+import AdminMerchantVerifications from './pages/admin/AdminMerchantVerifications';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminVerifications from './pages/admin/AdminVerifications';
+import PublicMerchantProfile from './pages/shared/PublicMerchantProfile';
+import AdminReferenceData from './pages/admin/AdminReferenceData';
+import AdminCampusForm from './pages/admin/AdminCampusForm';
+import AdminMasterForm from './pages/admin/AdminMasterForm';
 import AdminLayout from './components/AdminLayout';
 
 // Layout Standar Mahasiswa //
@@ -90,6 +92,29 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+                 <Route
+         path="/merchant/jobs/:jobId/applicants"
+         element={
+           <ProtectedRoute>
+             <MerchantLayout>
+               <KelolaPelamarLowongan />
+             </MerchantLayout>
+           </ProtectedRoute>
+         }
+       />
+       <Route
+         path="/merchant/applications/:applicationId"
+         element={
+           <ProtectedRoute>
+             <MerchantLayout>
+               <DetailPelamar />
+             </MerchantLayout>
+           </ProtectedRoute>
+         }
+       />
+
+
           <Route
             path="/merchant/candidates"
             element={
@@ -171,11 +196,27 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/merchant-verifications"
+           <Route
+             path="/admin/dashboard"
+             element={
+               <ProtectedRoute allowedRoles={['admin']}>
+                 <AdminLayout><AdminDashboard /></AdminLayout>
+               </ProtectedRoute>
+             }
+           />
+           <Route
+             path="/admin/verifikasi-dokumen"
+             element={
+               <ProtectedRoute allowedRoles={['admin']}>
+                 <AdminLayout><AdminVerifications /></AdminLayout>
+               </ProtectedRoute>
+             }
+           />
+           <Route
+             path="/admin/merchant-verifications"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <AdminLayout><AdminMerchantVerifications /></AdminLayout>
+                 <AdminLayout><AdminMerchantVerifications /></AdminLayout>
               </ProtectedRoute>
             }
           />
