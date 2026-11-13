@@ -33,4 +33,19 @@ class JobApplication extends Model
     {
         return $this->hasMany(JobApplicationStatusHistory::class)->orderBy('created_at');
     }
+
+    public function interviewSchedules()
+    {
+        return $this->hasMany(InterviewSchedule::class);
+    }
+
+    public function interviewEvaluation()
+    {
+        return $this->hasOne(InterviewEvaluation::class);
+    }
+
+    public function feedbackReport()
+    {
+        return $this->hasOne(ApplicationFeedbackReport::class);
+    }
 }

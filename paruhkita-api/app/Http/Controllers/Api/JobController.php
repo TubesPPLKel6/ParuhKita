@@ -59,6 +59,7 @@ class JobController extends Controller
             ->with([
                 'applications.student:id,name',
                 'applications.student.studentProfile:id,user_id,university,major',
+                'applications.feedbackReport:id,job_application_id,status',
             ])
             ->latest()
             ->get();
@@ -159,8 +160,18 @@ class JobController extends Controller
                 }
 
                 $application->statusHistories()->create([
+                    'status' => 'submitted',
+                    'note' => 'Formulir dan dokumen berhasil dikirim.',
+                ]);
+
+                $application->statusHistories()->create([
+                    'status' => 'received',
+                    'note' => 'Lamaran tercatat dan diteruskan ke ' . $jobPost->merchantProfile->merchant_name . '.',
+                ]);
+
+                $application->statusHistories()->create([
                     'status' => 'pending',
-                    'note' => 'Lamaran masuk antrean merchant untuk ditinjau.',
+                    'note' => 'Masuk antrean peninjauan merchant.',
                 ]);
 
                 return $application;
@@ -225,7 +236,7 @@ class JobController extends Controller
         ]);
     }
 
-        public function merchantJobApplicants(Request $request, JobPost $jobPost)
+    public function merchantJobApplicants(Request $request, JobPost $jobPost)
     {
         $profile = $this->verifiedMerchantProfile($request);
         abort_unless($jobPost->merchant_profile_id === $profile->id, 404, 'Lowongan tidak ditemukan.');
@@ -267,9 +278,8 @@ class JobController extends Controller
             'student.studentPortfolios',
             'documents',
             'statusHistories',
+            'feedbackReport:id,job_application_id,status',
         ]);
-
-
         return response()->json([
             'status' => true,
             'data' => $jobApplication,
@@ -286,8 +296,6 @@ class JobController extends Controller
 
         return Storage::disk('local')->download($document->file_path, $document->original_name);
     }
-
-
 
     private function verifiedMerchantProfile(Request $request)
     {

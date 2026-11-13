@@ -228,7 +228,7 @@ export default function MerchantProfile() {
         
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold absolute left-1/2 -translate-x-1/2">
           <button onClick={() => navigate('/merchant/dashboard')} className="text-slate-300 hover:text-white transition">Dashboard</button>
-          <button onClick={() => navigate('/merchant/dashboard')} className="text-slate-300 hover:text-white transition">Kandidat</button>
+          <button onClick={() => navigate('/merchant/candidates')} className="text-slate-300 hover:text-white transition">Kandidat</button>
           <button onClick={() => navigate('/merchant/dashboard')} className="text-slate-300 hover:text-white transition">Lowongan</button>
         </nav>
 
@@ -292,13 +292,13 @@ export default function MerchantProfile() {
                 <span>Lowongan</span>
               </button>
               <button 
-                onClick={() => navigate('/merchant/dashboard')}
+                onClick={() => navigate('/merchant/candidates')}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left"
               >
                 <span>Kandidat</span>
               </button>
               <button 
-                onClick={() => navigate('/merchant/dashboard')}
+                onClick={() => navigate('/merchant/jadwal')}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left"
               >
                 <span>Jadwal</span>

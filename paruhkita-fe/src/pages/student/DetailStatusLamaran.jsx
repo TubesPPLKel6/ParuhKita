@@ -1,22 +1,91 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, CheckCircle2, Clock3, Download, FileText } from 'lucide-react';
+import {
+  ArrowLeft,
+  Bell,
+  Check,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  Star,
+  X,
+} from 'lucide-react';
 import api from '../../api/axios';
+import StudentShell from '../../components/student/StudentShell';
 
-const stages = [
-  { title: 'Lamaran berhasil dikirim', status: 'pending', description: 'Formulir dan dokumen lamaran berhasil dikirim.' },
-  { title: 'Lamaran sedang ditinjau', status: 'pending', description: 'Lamaran masuk antrean merchant untuk ditinjau.' },
-  { title: 'Seleksi administrasi', status: 'reviewing', description: 'Pemeriksaan kecocokan biodata dan persyaratan.' },
-  { title: 'Wawancara', status: 'interview', description: 'Jadwal wawancara akan ditampilkan setelah tahap sebelumnya.' },
-  { title: 'Hasil akhir seleksi', status: 'final', description: 'Keputusan akhir akan ditampilkan setelah proses seleksi selesai.' },
-];
-const statusNames = { pending: 'Menunggu Review', reviewing: 'Seleksi Administrasi', interview: 'Wawancara', trial: 'Wawancara', accepted: 'Diterima', rejected: 'Ditolak' };
+const BADGE_STYLES = {
+  done: 'bg-[#E9F9F1] text-[#1F9D63]',
+  active: 'bg-[#E8F7FC] text-[#0E7FA8]',
+  pending: 'bg-[#F4F7FA] text-[#6B7F90]',
+  danger: 'bg-[#FDECEC] text-[#C0392B]',
+};
 
-function currentStage(status) {
-  if (status === 'reviewing') return 2;
-  if (['interview', 'trial'].includes(status)) return 3;
-  if (['accepted', 'rejected'].includes(status)) return 4;
-  return 1;
+function StatusPill({ status, label }) {
+  if (status === 'accepted' || status === 'rejected') {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-md bg-white px-3.5 py-2 text-[11px] font-semibold text-pk-navy shadow-xs">
+        <span className={`h-2 w-2 rounded-full ${status === 'accepted' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+        {label}
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-2 rounded-md bg-white px-3.5 py-2 text-[11px] font-semibold text-pk-navy shadow-xs">
+      <Clock3 className="h-3.5 w-3.5 text-pk-primary" />
+      {label}
+    </span>
+  );
+}
+
+function TimelineMarker({ stage, index }) {
+  const isDanger = stage.tone === 'danger';
+
+  if (stage.state === 'done') {
+    return (
+      <span
+        className={`z-10 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-white ${
+          isDanger ? 'bg-rose-500' : 'bg-pk-primary'
+        }`}
+      >
+        {isDanger ? <X className="h-3 w-3" /> : <Check className="h-3 w-3" />}
+      </span>
+    );
+  }
+
+  if (stage.state === 'active') {
+    return (
+      <span className="z-10 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 border-pk-cyan bg-white text-pk-primary">
+        <Clock3 className="h-3 w-3" />
+      </span>
+    );
+  }
+
+  return (
+    <span className="z-10 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border border-pk-border bg-white text-[10px] font-semibold text-pk-hint">
+      {index + 1}
+    </span>
+  );
+}
+
+function InterviewDetails({ details }) {
+  return (
+    <div className="mt-3 space-y-1">
+      <p className="text-[9.5px] font-bold uppercase tracking-[0.08em] text-pk-primary">Jadwal Wawancara</p>
+      <p className="text-[11.5px] text-pk-body">
+        <span className="font-semibold text-pk-muted">Tanggal:</span> {details.date_label}
+      </p>
+      <p className="text-[11.5px] text-pk-body">
+        <span className="font-semibold text-pk-muted">Waktu:</span> {details.time_label}
+      </p>
+      <p className="text-[11.5px] text-pk-body">
+        <span className="font-semibold text-pk-muted">Metode:</span> {details.method}
+      </p>
+      <p className="break-words text-[11.5px] text-pk-body">
+        <span className="font-semibold text-pk-muted">Alamat / Tautan:</span> {details.location}
+      </p>
+    </div>
+  );
 }
 
 export default function DetailStatusLamaran() {
@@ -27,20 +96,29 @@ export default function DetailStatusLamaran() {
 
   useEffect(() => {
     let active = true;
-    api.get('/v1/student/applications')
+    setLoading(true);
+    setErrorMessage('');
+
+    api.get(`/v1/student/applications/${applicationId}`)
       .then(({ data }) => {
-        const found = (data.data || []).find((item) => String(item.id) === applicationId);
-        if (active && found) setApplication(found);
-        else if (active) setErrorMessage('Lamaran tidak ditemukan.');
+        if (active) setApplication(data.data);
       })
-      .catch((error) => { if (active) setErrorMessage(error.response?.data?.message || 'Tidak dapat memuat detail lamaran.'); })
-      .finally(() => { if (active) setLoading(false); });
+      .catch((error) => {
+        if (active) setErrorMessage(error.response?.data?.message || 'Tidak dapat memuat detail lamaran.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
     return () => { active = false; };
   }, [applicationId]);
 
   const downloadDocument = async (document) => {
     try {
-      const { data } = await api.get(`/v1/student/applications/${application.id}/documents/${document.id}`, { responseType: 'blob' });
+      const { data } = await api.get(
+        `/v1/student/applications/${application.id}/documents/${document.id}`,
+        { responseType: 'blob' }
+      );
       const url = URL.createObjectURL(data);
       const link = window.document.createElement('a');
       link.href = url;
@@ -52,66 +130,357 @@ export default function DetailStatusLamaran() {
     }
   };
 
-  if (loading) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-[#536B82]">Memuat perkembangan lamaran...</div>;
-  if (!application) return <div className="mx-auto max-w-5xl px-4 py-10"><p role="alert" className="mb-4 text-sm text-rose-700">{errorMessage}</p><Link to="/lamaran" className="text-sm font-bold text-[#023E8A]">Kembali ke Lamaran Saya</Link></div>;
+  if (loading) {
+    return (
+      <StudentShell active="Lamaran saya">
+        <div className="mx-auto w-full max-w-[1232px] px-6 py-16 text-[13px] text-pk-muted">
+          Memuat perkembangan lamaran...
+        </div>
+      </StudentShell>
+    );
+  }
 
-  const job = application.job_post || {};
-  const merchant = job.merchant_profile || {};
-  const histories = application.status_histories || [];
-  const documents = application.documents || [];
-  const activeStage = currentStage(application.status);
-  const isFinal = ['accepted', 'rejected'].includes(application.status);
+  if (!application) {
+    return (
+      <StudentShell active="Lamaran saya">
+        <div className="mx-auto w-full max-w-[1232px] px-6 py-16">
+          <p role="alert" className="mb-4 text-[13px] text-rose-700">{errorMessage}</p>
+          <Link to="/lamaran" className="inline-flex items-center gap-2 text-[12px] font-bold text-pk-primary">
+            <ArrowLeft className="h-4 w-4" /> Kembali ke Lamaran Saya
+          </Link>
+        </div>
+      </StudentShell>
+    );
+  }
+
+  const { merchant, job, student, documents, completeness, timeline, follow_up: followUp, histories } = application;
+  const performance = application.interview_performance;
 
   return (
-    <div className="min-h-screen bg-[#F6F9FC]">
-      <main className="mx-auto max-w-5xl space-y-4 px-4 py-5 sm:px-6">
-        <Link to="/lamaran" className="inline-flex items-center gap-1 text-[11px] text-[#023E8A]"><ArrowLeft size={13} /> Lamaran Saya / {merchant.merchant_name} / Detail Status Lamaran</Link>
-        <div><h1 className="text-2xl font-extrabold text-[#03045E]">Detail Status dan Perkembangan Seleksi</h1><p className="mt-1 text-xs text-[#536B82]">Ikuti setiap perkembangan lamaranmu, dari terkirim hingga keputusan akhir.</p></div>
+    <StudentShell active="Lamaran saya">
+      <div className="mx-auto w-full max-w-[1232px] px-6 py-7">
+        <Link to="/lamaran" className="inline-flex items-center gap-2 text-[11.5px] font-medium text-pk-muted transition hover:text-pk-primary">
+          <ArrowLeft className="h-4 w-4" />
+          Lamaran Saya <span className="text-pk-border">/</span> {merchant.merchant_name}
+          <span className="text-pk-border">/</span> <span className="text-pk-primary">Detail Status Lamaran</span>
+        </Link>
 
-        {errorMessage && <p role="alert" className="rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">{errorMessage}</p>}
+        <h1 className="mt-4 text-[26px] font-extrabold leading-tight tracking-tight text-pk-navy">
+          Detail Status dan Perkembangan Seleksi
+        </h1>
+        <p className="mt-1.5 text-[12.5px] text-pk-muted">
+          Ikuti setiap perkembangan lamaranmu, dari terkirim hingga keputusan akhir.
+        </p>
 
-        <section className="rounded-lg bg-[#CAF0F8] p-5 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-md bg-white text-xs font-bold text-[#023E8A]">{(merchant.merchant_name || 'PK').slice(0, 2).toUpperCase()}</span><div><h2 className="text-base font-extrabold text-[#03045E]">{job.title}</h2><p className="text-[10px] text-[#023E8A]">{merchant.merchant_name} · {merchant.address}</p></div></div><span className="rounded-md bg-white px-3 py-2 text-[10px] font-bold text-[#0346C8]">{statusNames[application.status] || application.status}</span></div>
-          <div className="mt-4 grid gap-3 border-t border-[#A9DCE8] pt-3 text-[10px] sm:grid-cols-3"><p><span className="block text-[#536B82]">ID lamaran</span>PK-{application.id}</p><p><span className="block text-[#536B82]">Dikirim pada</span>{new Date(application.created_at).toLocaleString('id-ID')}</p><p><span className="block text-[#536B82]">Status terakhir</span>{statusNames[application.status] || application.status} sejak {new Date(application.updated_at).toLocaleString('id-ID')}</p></div>
+        {errorMessage && (
+          <p role="alert" className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-[12px] text-rose-700">
+            {errorMessage}
+          </p>
+        )}
+
+        {/* Kartu ringkasan lamaran */}
+        <section className="mt-5 rounded-xl bg-pk-pastel px-6 py-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white text-[13px] font-bold text-pk-primary">
+                {merchant.initials}
+              </span>
+              <div>
+                <h2 className="text-[22px] font-extrabold leading-tight text-pk-navy">{job.title}</h2>
+                <p className="mt-1 text-[12px] text-pk-primary">
+                  {merchant.merchant_name} · {merchant.address}
+                </p>
+              </div>
+            </div>
+            <StatusPill status={application.status} label={application.status_label} />
+          </div>
+
+          <div className="mt-5 grid gap-4 border-t border-[#A9DCE8] pt-4 sm:grid-cols-3">
+            <p className="text-[11px]">
+              <span className="block text-pk-muted">ID lamaran</span>
+              <span className="mt-0.5 block text-[12px] font-semibold text-pk-body">{application.code}</span>
+            </p>
+            <p className="text-[11px]">
+              <span className="block text-pk-muted">Dikirim pada</span>
+              <span className="mt-0.5 block text-[12px] font-semibold text-pk-body">{application.submitted_label}</span>
+            </p>
+            <p className="text-[11px]">
+              <span className="block text-pk-muted">Status terakhir</span>
+              <span className="mt-0.5 block text-[12px] font-semibold text-pk-body">
+                {application.status_label} sejak {application.status_since_label}
+              </span>
+            </p>
+          </div>
         </section>
 
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,1fr)]">
-          <div className="space-y-4">
-            <section className="rounded-lg border border-[#D8E5EE] bg-white p-5">
-              <h2 className="text-base font-bold text-[#03045E]">Perkembangan Seleksi</h2><p className="mt-2 text-[10px] text-[#536B82]">Tahap {activeStage + 1} dari 5 · {statusNames[application.status] || application.status}</p>
-              <div className="mt-4 space-y-0">
-                {stages.map((stage, index) => {
-                  const done = index < activeStage || (isFinal && index === 4);
-                  const active = index === activeStage && !isFinal;
-                  const history = index === 0 ? null : stage.status === 'final'
-                    ? histories.find((item) => ['accepted', 'rejected'].includes(item.status))
-                    : [...histories].reverse().find((item) => item.status === stage.status);
-                  const timestamp = index === 0 ? application.created_at : history?.created_at;
-                  return <div key={stage.title} className="relative flex gap-3 pb-5 last:pb-0">
-                    {index < stages.length - 1 && <span className={`absolute left-[8px] top-5 h-full w-px ${done ? 'bg-[#0346C8]' : 'bg-[#D8E5EE]'}`} />}
-                    <span className={`z-10 grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border ${done ? 'border-[#0346C8] bg-[#0346C8] text-white' : active ? 'border-[#00B4D8] bg-[#CAF0F8] text-[#0346C8]' : 'border-[#D8E5EE] bg-[#F6F9FC] text-[#536B82]'}`}>{done ? <Check size={12} /> : active ? <Clock3 size={11} /> : <span className="text-[8px]">{index + 1}</span>}</span>
-                    <div className="min-w-0"><h3 className={`text-xs font-bold ${active || done ? 'text-[#03045E]' : 'text-[#536B82]'}`}>{stage.title}</h3><span className={`mt-1 inline-block rounded px-2 py-1 text-[9px] ${done ? 'bg-emerald-50 text-emerald-700' : active ? 'bg-[#EEF9FC] text-[#0346C8]' : 'bg-[#F4F7FA] text-[#536B82]'}`}>{done ? 'Selesai' : active ? statusNames[application.status] : 'Belum dimulai'}</span><p className="mt-1 text-[10px] leading-4 text-[#536B82]">{history?.note || stage.description}</p>{timestamp && <p className="mt-1 text-[9px] text-[#536B82]">{new Date(timestamp).toLocaleString('id-ID')}</p>}</div>
-                  </div>;
+        <div className="mt-5 grid items-start gap-5 lg:grid-cols-[1.62fr_1fr]">
+          <div className="space-y-5">
+            {/* Perkembangan seleksi */}
+            <section className="rounded-xl border border-pk-border bg-white px-6 py-6">
+              <h2 className="text-[16px] font-bold text-pk-navy">Perkembangan Seleksi</h2>
+              <p className="mt-2 text-[12px] text-pk-muted">{timeline.caption}</p>
+
+              <div className="mt-5 space-y-0 border-t border-pk-line pt-5">
+                {timeline.stages.map((stage, index) => {
+                  const isLast = index === timeline.stages.length - 1;
+                  const lineDone = stage.state === 'done';
+                  const badgeStyle = stage.tone === 'danger'
+                    ? BADGE_STYLES.danger
+                    : BADGE_STYLES[stage.state] || BADGE_STYLES.pending;
+
+                  return (
+                    <div key={stage.key} className={`relative flex gap-4 ${isLast ? '' : 'pb-6'}`}>
+                      {!isLast && (
+                        <span
+                          className={`absolute left-[10.5px] top-6 w-px ${lineDone ? 'bg-pk-primary' : 'bg-pk-border'}`}
+                          style={{ bottom: 0 }}
+                        />
+                      )}
+                      <TimelineMarker stage={stage} index={index} />
+
+                      <div className="min-w-0 flex-1 pb-0">
+                        <h3 className="text-[14px] font-bold text-pk-navy">
+                          {stage.title}
+                        </h3>
+                        <span className={`mt-1.5 inline-flex rounded px-2 py-[3px] text-[10px] font-semibold ${badgeStyle}`}>
+                          {stage.badge}
+                        </span>
+                        <p className="mt-2 text-[12px] leading-[1.65] text-pk-muted">{stage.description}</p>
+
+                        {stage.details && <InterviewDetails details={stage.details} />}
+
+                        {stage.time_label && (
+                          <p className="mt-2 text-[11px] font-semibold text-pk-primary">{stage.time_label}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
                 })}
               </div>
             </section>
-            <section className="rounded-lg bg-[#CAF0F8] p-4"><h2 className="text-xs font-bold text-[#03045E]">Tindak Lanjut</h2><p className="mt-1 text-[10px] leading-5 text-[#536B82]">{application.merchant_note || 'Belum ada tindakan yang perlu dilakukan. Pantau email dan notifikasi untuk kabar terbaru.'}</p></section>
+
+            {/* Performa wawancara dari penilaian merchant */}
+            {performance && (
+              <section className="rounded-xl border border-pk-border bg-white px-6 py-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-[16px] font-bold text-pk-navy">Performa Wawancara</h2>
+                    <p className="mt-1 text-[11.5px] text-pk-muted">
+                      Penilaian dari tim rekrutmen {merchant.merchant_name} berdasarkan sesi wawancara.
+                    </p>
+                  </div>
+                  {performance.recommendation && (
+                    <span className="rounded bg-pk-pastel px-2.5 py-1 text-[10.5px] font-semibold text-pk-primary">
+                      {performance.recommendation}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg bg-[#EFF7FB] px-5 py-4">
+                  <div>
+                    <p className="text-[10px] text-pk-muted">Total skor</p>
+                    <p className="mt-0.5 text-[24px] font-extrabold leading-none text-pk-navy">
+                      {performance.total_score}
+                      <span className="text-[13px] font-semibold text-pk-primary"> / {performance.max_score}</span>
+                    </p>
+                  </div>
+
+                  <span className="hidden h-10 w-px bg-pk-border sm:block" />
+
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-pk-muted">Sesi wawancara</p>
+                    <p className="mt-0.5 text-[11.5px] font-semibold text-pk-body">
+                      {performance.interview.date_label} · {performance.interview.time_label}
+                    </p>
+                    <p className="text-[10.5px] text-pk-muted">
+                      {performance.interview.method} · {performance.interview.location}
+                    </p>
+                  </div>
+
+                  {performance.evaluated_at_label && (
+                    <p className="ml-auto text-[10.5px] text-pk-muted">
+                      Dinilai {performance.evaluated_at_label}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-4 divide-y divide-pk-line">
+                  {(performance.criteria || []).map((criterion, index) => (
+                    <div key={`${criterion.label}-${index}`} className="py-3 first:pt-0 last:pb-0">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-[12px] font-semibold text-pk-navy">{criterion.label}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-3.5 w-3.5 ${
+                                  star <= criterion.score
+                                    ? 'fill-pk-gold text-pk-gold'
+                                    : 'fill-pk-border text-pk-border'
+                                }`}
+                              />
+                            ))}
+                          </span>
+                          <span className="text-[11px] font-semibold text-pk-body">{criterion.score}/5</span>
+                        </div>
+                      </div>
+                      {criterion.note && (
+                        <p className="mt-1 text-[11px] leading-[1.65] text-pk-muted">{criterion.note}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {performance.feedback && (
+                  <div className="mt-3 rounded-lg bg-pk-canvas px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-pk-muted">
+                      Catatan untuk kandidat
+                    </p>
+                    <p className="mt-1 text-[11.5px] leading-[1.7] text-pk-body">{performance.feedback}</p>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Tindak lanjut */}
+            <section className={`rounded-xl px-6 py-5 ${followUp.tone === 'danger' ? 'bg-[#FDECEC]' : 'bg-[#D9F3F8]'}`}>
+              <div className="flex items-start gap-3">
+                <Bell className={`mt-0.5 h-4 w-4 shrink-0 ${followUp.tone === 'danger' ? 'text-rose-600' : 'text-pk-primary'}`} />
+                <div>
+                  <h2 className="text-[13px] font-bold text-pk-navy">{followUp.title}</h2>
+                  <p className={`mt-1.5 text-[11.5px] leading-[1.7] ${followUp.tone === 'danger' ? 'text-[#8A3B36]' : 'text-pk-body/85'}`}>
+                    {followUp.body}
+                  </p>
+                  {followUp.action && (
+                    <Link
+                      to={`/lamaran/${application.id}/rekomendasi`}
+                      className="mt-3 inline-flex rounded-md bg-pk-primary px-4 py-2.5 text-[11px] font-bold text-white transition hover:bg-pk-navy"
+                    >
+                      {followUp.action}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </section>
           </div>
 
-          <aside className="space-y-4">
-            <section className="rounded-lg border border-[#D8E5EE] bg-white p-4"><h2 className="text-sm font-bold text-[#03045E]">Dokumen Terkirim</h2><p className="mt-1 text-[10px] text-[#536B82]">Dokumen yang disertakan saat mengirim lamaran.</p><div className="mt-3 space-y-2">{documents.map((document) => <button key={document.id} type="button" onClick={() => downloadDocument(document)} className="flex w-full items-center gap-2 rounded-md border border-[#D8E5EE] bg-[#EFFAFF] p-3 text-left hover:bg-[#E3F7FD]"><FileText size={16} className="shrink-0 text-[#0346C8]" /><span className="min-w-0 flex-1"><span className="block truncate text-[10px] font-semibold text-[#102C4D]">{document.original_name}</span><span className="text-[9px] text-[#536B82]">{document.document_type === 'student_id' ? 'KTM · ' : ''}{formatSize(document.file_size)}</span></span><Download size={13} className="text-[#0346C8]" /></button>)}</div></section>
-            <section className="rounded-lg border border-[#D8E5EE] bg-white p-4"><h2 className="text-sm font-bold text-[#03045E]">Kelengkapan Lamaran</h2><div className="mt-3 space-y-2 text-[10px]">{[['CV wajib', 'cv'], ['KTM / bukti mahasiswa aktif', 'student_id'], ['Portofolio opsional', 'portfolio']].map(([label, type]) => <p key={type} className="flex items-center gap-2"><CheckCircle2 size={13} className={documents.some((document) => document.document_type === type) ? 'text-[#0346C8]' : 'text-[#AAB8C4]'} />{label} {documents.some((document) => document.document_type === type) ? 'terlampir' : 'tidak disertakan'}</p>)}</div></section>
-            <section className="rounded-lg border border-[#D8E5EE] bg-white p-4"><h2 className="text-sm font-bold text-[#03045E]">Pelamar</h2><p className="mt-3 text-[10px] font-semibold text-[#102C4D]">{application.student?.name || 'Profil mahasiswa'}</p><p className="mt-1 text-[10px] text-[#536B82]">{[application.student?.student_profile?.major, application.student?.student_profile?.university].filter(Boolean).join(' · ')}</p><p className="mt-1 text-[10px] text-[#536B82]">{application.student?.email}</p><p className="mt-3 border-t border-[#E8EFF4] pt-3 text-[10px] leading-5 text-[#536B82]">{application.motivation || 'Motivasi lamaran tersimpan.'}</p></section>
+          <aside className="space-y-5">
+            {/* Dokumen terkirim */}
+            <section className="rounded-xl border border-pk-border bg-white px-5 py-5">
+              <h2 className="text-[15px] font-bold text-pk-navy">Dokumen Terkirim</h2>
+              <p className="mt-1.5 text-[11px] text-pk-muted">Dokumen berikut disertakan saat kamu mengirim lamaran.</p>
+
+              <div className="mt-3.5 space-y-2.5">
+                {documents.length === 0 && (
+                  <p className="rounded-lg border border-dashed border-pk-border px-3 py-4 text-center text-[11px] text-pk-muted">
+                    Belum ada dokumen yang diunggah.
+                  </p>
+                )}
+                {documents.map((document) => (
+                  <button
+                    key={document.id}
+                    type="button"
+                    onClick={() => downloadDocument(document)}
+                    className="flex w-full items-center gap-3 rounded-lg border border-[#CFEAF5] bg-[#EFF9FD] px-3.5 py-3 text-left transition hover:bg-[#E3F6FC]"
+                    title={`Unduh ${document.original_name}`}
+                  >
+                    <FileText className="h-5 w-5 shrink-0 text-pk-primary" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[12px] font-semibold text-pk-navy">{document.original_name}</span>
+                      <span className="mt-0.5 block text-[10px] text-pk-muted">
+                        {document.required ? 'Wajib' : 'Opsional'} · Terlampir · {document.format} · {document.size_label}
+                      </span>
+                    </span>
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-pk-primary" />
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Kelengkapan lamaran */}
+            <section className="rounded-xl border border-pk-border bg-white px-5 py-5">
+              <h2 className="text-[15px] font-bold text-pk-navy">Kelengkapan Lamaran</h2>
+
+              <span
+                className={`mt-3 inline-flex rounded px-2 py-1 text-[10.5px] font-semibold ${
+                  completeness.complete ? 'bg-[#E9F9F1] text-[#1F9D63]' : 'bg-[#FFF5E5] text-[#B7791F]'
+                }`}
+              >
+                {completeness.badge}
+              </span>
+
+              <div className="mt-3.5 space-y-2.5">
+                {completeness.items.map((item) => (
+                  <p key={item.key} className="flex items-center gap-2.5 text-[11.5px] text-pk-body">
+                    {item.done ? (
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] bg-pk-primary text-white">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                    ) : (
+                      <span className="h-4 w-4 shrink-0 rounded-[3px] border border-pk-border bg-white" />
+                    )}
+                    {item.label}
+                  </p>
+                ))}
+              </div>
+
+              <p className="mt-3 text-[10.5px] leading-4 text-pk-muted">{completeness.note}</p>
+
+              <div className="mt-4 border-t border-pk-line pt-3.5">
+                <p className="text-[10.5px] text-pk-muted">Jadwal kerja yang disetujui</p>
+                <p className="mt-1 text-[11.5px] font-semibold text-pk-body">{completeness.work_schedule}</p>
+              </div>
+            </section>
+
+            {/* Pelamar */}
+            <section className="rounded-xl border border-pk-border bg-white px-5 py-5">
+              <h2 className="text-[15px] font-bold text-pk-navy">Pelamar</h2>
+              <p className="mt-3.5 text-[10.5px] text-pk-muted">Nama lengkap</p>
+              <p className="mt-0.5 text-[12px] font-bold text-pk-navy">{student.name}</p>
+              <p className="mt-2.5 text-[11.5px] text-pk-body">
+                {[student.degree_level, student.major].filter(Boolean).join(' ')}
+                {student.university ? ` · ${student.university}` : ''}
+              </p>
+              <p className="mt-0.5 text-[11.5px] text-pk-body">
+                {student.is_currently_studying ? 'Mahasiswa aktif' : 'Alumni'}
+              </p>
+              <p className="mt-0.5 text-[11.5px] text-pk-body">{student.email}</p>
+              <p className="mt-0.5 text-[11.5px] text-pk-body">{student.phone}</p>
+            </section>
           </aside>
         </div>
 
-        <section className="rounded-lg border border-[#D8E5EE] bg-white p-4"><h2 className="text-sm font-bold text-[#03045E]">Riwayat Perubahan Status</h2><p className="mt-1 text-[10px] text-[#536B82]">Catatan perubahan yang sudah terjadi pada lamaran ini.</p><div className="mt-4 grid gap-4 sm:grid-cols-3">{histories.map((history) => <div key={history.id}><p className="text-[9px] font-semibold text-[#0346C8]">{new Date(history.created_at).toLocaleString('id-ID')}</p><h3 className="mt-1 text-xs font-bold text-[#03045E]">{statusNames[history.status] || history.status}</h3><p className="mt-1 text-[10px] leading-4 text-[#536B82]">{history.note || 'Status lamaran diperbarui.'}</p></div>)}</div></section>
-        <Link to="/lamaran" className="inline-flex items-center gap-2 rounded-md border border-[#D8E5EE] bg-white px-4 py-2 text-[10px] font-bold text-[#03045E]"><ArrowLeft size={13} /> Kembali ke Lamaran Saya</Link>
-      </main>
-    </div>
-  );
-}
+        {/* Riwayat perubahan status */}
+        <section className="mt-5 rounded-xl border border-pk-border bg-white px-6 py-6">
+          <h2 className="text-[16px] font-bold text-pk-navy">Riwayat Perubahan Status</h2>
+          <p className="mt-1.5 text-[11.5px] text-pk-muted">
+            {application.submitted_date_label} · Catatan perubahan yang sudah terjadi pada lamaran ini.
+          </p>
 
-function formatSize(bytes) {
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+          <div className="mt-5 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+            {histories.map((history) => (
+              <div key={history.id}>
+                <p className="text-[10.5px] font-semibold text-pk-primary">{history.time_label}</p>
+                <h3 className={`mt-1 text-[12.5px] font-bold ${history.tone === 'danger' ? 'text-rose-600' : 'text-pk-navy'}`}>
+                  {history.title}
+                </h3>
+                <p className="mt-1 text-[11px] leading-[1.6] text-pk-muted">{history.note}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 pb-2">
+          <Link
+            to="/lamaran"
+            className="inline-flex items-center gap-2 rounded-md border border-pk-border bg-white px-4 py-2.5 text-[11px] font-bold text-pk-navy transition hover:bg-pk-soft"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Kembali ke Lamaran Saya
+          </Link>
+          <p className="text-[11px] text-pk-muted">Status diperbarui saat ada perkembangan dari merchant.</p>
+        </div>
+      </div>
+    </StudentShell>
+  );
 }

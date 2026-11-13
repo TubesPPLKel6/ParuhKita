@@ -80,7 +80,8 @@ class JobIntegrationTest extends TestCase
             ->assertJsonPath('data.0.job_post.title', 'Barista Sore')
             ->assertJsonPath('data.0.job_post.merchant_profile.merchant_name', 'Kedai Contoh')
             ->assertJsonCount(2, 'data.0.documents')
-            ->assertJsonPath('data.0.status_histories.0.status', 'pending');
+            ->assertJsonPath('data.0.status_histories.0.status', 'submitted')
+            ->assertJsonPath('data.0.status_histories.2.status', 'pending');
 
         $applicationId = $this->actingAs($merchant, 'sanctum')
             ->getJson('/api/v1/merchant/jobs')

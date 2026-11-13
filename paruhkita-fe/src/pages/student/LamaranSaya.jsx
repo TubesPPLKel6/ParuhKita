@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BriefcaseBusiness, CheckCircle2, Clock3, FileText, Search } from 'lucide-react';
 import api from '../../api/axios';
+import StudentShell from '../../components/student/StudentShell';
 
 const STATUS_LABELS = {
   pending: 'Menunggu Review Merchant',
@@ -85,7 +86,8 @@ export default function LamaranSaya() {
   }), [applications]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen">
+    <StudentShell active="Lamaran saya">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-[#03045E]">Lamaran Saya</h1>
         <p className="mt-1 text-xs sm:text-sm text-[#536B82]">Pantau perkembangan seluruh lamaran pekerjaanmu dalam satu tempat.</p>
@@ -156,5 +158,6 @@ export default function LamaranSaya() {
         })}
       </div>
     </div>
+    </StudentShell>
   );
 }

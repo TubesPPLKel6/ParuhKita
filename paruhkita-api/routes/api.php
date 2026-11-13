@@ -10,6 +10,9 @@ use App\Http\Controllers\Api\MerchantProfileController;
 use App\Http\Controllers\Api\AdminReferenceDataController;
 use App\Http\Controllers\Api\ReferenceDataController;
 use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\MerchantScheduleController;
+use App\Http\Controllers\Api\StudentApplicationController;
+use App\Http\Controllers\Api\ApplicationFeedbackController;
 use App\Http\Controllers\Api\WorkplaceSurveyController;
 use App\Http\Controllers\Api\StudentVerificationController;
 use App\Http\Controllers\Api\AdminVerificationController;
@@ -57,6 +60,8 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/jobs/{jobPost}', [JobController::class, 'show']);
     Route::post('/jobs/{jobPost}/applications', [JobController::class, 'apply']);
     Route::get('/student/applications', [JobController::class, 'studentApplications']);
+    Route::get('/student/applications/{jobApplication}', [StudentApplicationController::class, 'show']);
+    Route::get('/student/applications/{jobApplication}/feedback-report', [StudentApplicationController::class, 'feedbackReport']);
     Route::get('/student/applications/{jobApplication}/documents/{documentId}', [JobController::class, 'downloadApplicationDocument']);
     Route::get('/merchant/jobs', [JobController::class, 'merchantIndex']);
     Route::post('/merchant/jobs', [JobController::class, 'store']);
@@ -66,8 +71,21 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     Route::get('/merchant/jobs/{jobPost}/applicants', [JobController::class, 'merchantJobApplicants']);
     Route::get('/merchant/applications/{jobApplication}', [JobController::class, 'merchantApplicationDetail']);
+    Route::get('/merchant/applications/{jobApplication}/feedback-report', [ApplicationFeedbackController::class, 'show']);
+    Route::post('/merchant/applications/{jobApplication}/feedback-report', [ApplicationFeedbackController::class, 'save']);
+    Route::post('/merchant/applications/{jobApplication}/feedback/categories', [ApplicationFeedbackController::class, 'storeCategory']);
+    Route::put('/merchant/applications/{jobApplication}/feedback/categories/{category}', [ApplicationFeedbackController::class, 'updateCategory']);
+    Route::delete('/merchant/applications/{jobApplication}/feedback/categories/{category}', [ApplicationFeedbackController::class, 'destroyCategory']);
     Route::get('/merchant/applications/{jobApplication}/documents/{documentId}', [JobController::class, 'merchantDownloadDocument']);
 
+    // --- JADWAL SELEKSI & PENILAIAN KANDIDAT ---
+    Route::get('/merchant/schedules', [MerchantScheduleController::class, 'index']);
+    Route::get('/merchant/schedules/candidates', [MerchantScheduleController::class, 'candidates']);
+    Route::post('/merchant/schedules', [MerchantScheduleController::class, 'store']);
+    Route::put('/merchant/schedules/{schedule}', [MerchantScheduleController::class, 'update']);
+    Route::delete('/merchant/schedules/{schedule}', [MerchantScheduleController::class, 'destroy']);
+    Route::get('/merchant/schedules/{schedule}/evaluation', [MerchantScheduleController::class, 'showEvaluation']);
+    Route::post('/merchant/schedules/{schedule}/evaluation', [MerchantScheduleController::class, 'saveEvaluation']);
 
     Route::prefix('admin/reference-data')->group(function () {
         Route::get('/', [AdminReferenceDataController::class, 'index']);
