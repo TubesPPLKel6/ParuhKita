@@ -22,7 +22,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     const homeByRole = {
-      admin: '/admin/merchant-verifications',
+       admin: '/admin/dashboard',
       merchant: '/merchant/dashboard',
       mahasiswa: '/kesiapan-karier',
     };
