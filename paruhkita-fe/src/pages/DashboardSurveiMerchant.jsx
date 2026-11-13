@@ -81,7 +81,7 @@ export default function DashboardSurveiMerchant() {
               <button type="button" onClick={() => navigate('/merchant/dashboard')} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[#536B82] hover:bg-slate-50"><BriefcaseBusiness size={14} /> Lowongan</button>
               <button type="button" onClick={() => navigate('/merchant/dashboard')} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[#536B82] hover:bg-slate-50"><Users size={14} /> Kandidat</button>
               <button type="button" className="flex w-full items-center gap-3 rounded-xl bg-[#023E8A] px-3.5 py-2.5 text-left font-bold text-white"><ClipboardList size={14} /> Survei Kelayakan</button>
-              <button type="button" onClick={() => navigate('/merchant/dashboard')} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[#536B82] hover:bg-slate-50"><CalendarDays size={14} /> Jadwal</button>
+              <button type="button" onClick={() => navigate('/merchant/jadwal')} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[#536B82] hover:bg-slate-50"><CalendarDays size={14} /> Jadwal</button>
               <button type="button" onClick={() => navigate('/merchant/dashboard')} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[#536B82] hover:bg-slate-50"><MessageSquare size={14} /> Pesan</button>
               <button type="button" onClick={() => navigate('/merchant/settings')} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[#536B82] hover:bg-slate-50"><Settings size={14} /> Pengaturan</button>
             </nav>

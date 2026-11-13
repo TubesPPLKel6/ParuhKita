@@ -15,6 +15,13 @@
   --color-pk-amber-hover: #D97706;
   --color-pk-gold: #FBB02D;
 
+  --color-pk-event: #D1F1F9;
+  --color-pk-info: #EAF6FB;
+  --color-pk-line: #E8F0F5;
+  --color-pk-soft: #F5F8FB;
+  --color-pk-placeholder: #94A3B8;
+  --color-pk-hint: #7E90A1;
+
   --font-sans: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
 }
 

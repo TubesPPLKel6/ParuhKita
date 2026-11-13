@@ -272,7 +272,7 @@ export default function MerchantDashboard() {
               <button onClick={() => navigate('/merchant/surveys')} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left">
                 <span>Survei Kelayakan</span>
               </button>
-              <button onClick={() => navigate('/merchant/dashboard')} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left">
+              <button onClick={() => navigate('/merchant/jadwal')} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left">
                 <span>Jadwal</span>
               </button>
               <button onClick={() => navigate('/merchant/dashboard')} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left">

@@ -208,7 +208,7 @@ export default function MerchantSettings() {
                 <span>Kandidat</span>
               </button>
               <button 
-                onClick={() => navigate('/merchant/dashboard')}
+                onClick={() => navigate('/merchant/jadwal')}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left transition"
               >
                 <span>Jadwal</span>

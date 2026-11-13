@@ -17,6 +17,8 @@ import Komunitas from './pages/Komunitas';
 import SurveiKelayakan from './pages/SurveiKelayakan';
 import LamaranSaya from './pages/LamaranSaya';
 import DetailStatusLamaran from './pages/DetailStatusLamaran';
+import DetailLamaranAnda from './pages/DetailLamaranAnda';
+import DokumenMasukan from './pages/DokumenMasukan';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import CvList from './pages/CvList';
@@ -24,6 +26,9 @@ import PortfolioList from './pages/PortfolioList';
 
 // Pages Merchant 
 import MerchantDashboard from './pages/MerchantDashboard';
+import MerchantJadwal from './pages/MerchantJadwal';
+import KelolaPelamarLowongan from './pages/KelolaPelamarLowongan';
+import DetailPelamar from './pages/DetailPelamar';
 import DashboardSurveiMerchant from './pages/DashboardSurveiMerchant';
 import MerchantProfile from './pages/MerchantProfile';
 import MerchantSettings from './pages/MerchantSettings';
@@ -83,12 +88,40 @@ export default function App() {
             }
           />
           <Route
+            path="/merchant/jobs/:jobId/applicants"
+            element={
+              <ProtectedRoute>
+                <MerchantLayout>
+                  <KelolaPelamarLowongan />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/applications/:applicationId"
+            element={
+              <ProtectedRoute>
+                <MerchantLayout>
+                  <DetailPelamar />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/merchant/surveys"
             element={
               <ProtectedRoute>
                 <MerchantLayout>
                   <DashboardSurveiMerchant />
                 </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/jadwal"
+            element={
+              <ProtectedRoute>
+                <MerchantJadwal />
               </ProtectedRoute>
             }
           />
@@ -101,8 +134,7 @@ export default function App() {
                 </MerchantLayout>
               </ProtectedRoute>
             }
-          />
-          <Route
+          />          <Route
             path="/merchant/settings"
             element={
               <ProtectedRoute>
@@ -233,9 +265,7 @@ export default function App() {
             path="/lamaran"
             element={
               <ProtectedRoute>
-                <AppLayout>
-                  <LamaranSaya />
-                </AppLayout>
+                <LamaranSaya />
               </ProtectedRoute>
             }
           />
@@ -243,9 +273,23 @@ export default function App() {
             path="/lamaran/:applicationId"
             element={
               <ProtectedRoute>
-                <AppLayout>
-                  <DetailStatusLamaran />
-                </AppLayout>
+                <DetailStatusLamaran />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lamaran/:applicationId/rekomendasi"
+            element={
+              <ProtectedRoute>
+                <DetailLamaranAnda />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lamaran/:applicationId/dokumen-masukan"
+            element={
+              <ProtectedRoute>
+                <DokumenMasukan />
               </ProtectedRoute>
             }
           />
