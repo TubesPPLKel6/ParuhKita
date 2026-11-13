@@ -98,6 +98,13 @@ export default function DokumenMasukan() {
 
   const { merchant, job } = application;
   const decisionLabel = report.decision?.label || 'Belum Diterima / Ditolak';
+  const summaryScores = report.summary_scores?.length
+    ? report.summary_scores
+    : [
+        { key: 'cv', label: 'Dokumen CV', score: report.scores?.cv },
+        { key: 'portfolio', label: 'Portofolio', score: report.scores?.portfolio },
+        { key: 'skills', label: 'Keterampilan (Skills)', score: report.scores?.skills },
+      ];
 
   return (
     <StudentShell active="Lamaran saya">
@@ -174,10 +181,10 @@ export default function DokumenMasukan() {
             </span>
           </div>
 
-          <div className="mt-4 grid gap-4 rounded-md bg-[#EFF7FB] px-5 py-4 sm:grid-cols-3">
-            <ScoreSummary label="Dokumen CV" score={report.scores?.cv} />
-            <ScoreSummary label="Portofolio" score={report.scores?.portfolio} />
-            <ScoreSummary label="Keterampilan (Skills)" score={report.scores?.skills} />
+          <div className={`mt-4 grid gap-4 rounded-md bg-[#EFF7FB] px-5 py-4 ${summaryScores.length > 3 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'}`}>
+            {summaryScores.map((item) => (
+              <ScoreSummary key={item.key} label={item.label} score={item.score} />
+            ))}
           </div>
 
           <p className="mt-3.5 text-[10.5px] text-pk-muted">Skala 1–5: 1 = Perlu peningkatan · 3 = Cukup · 5 = Sangat baik.</p>

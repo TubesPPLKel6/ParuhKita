@@ -59,6 +59,7 @@ class JobController extends Controller
             ->with([
                 'applications.student:id,name',
                 'applications.student.studentProfile:id,user_id,university,major',
+                'applications.feedbackReport:id,job_application_id,status',
             ])
             ->latest()
             ->get();
@@ -277,6 +278,7 @@ class JobController extends Controller
             'student.studentPortfolios',
             'documents',
             'statusHistories',
+            'feedbackReport:id,job_application_id,status',
         ]);
 
         return response()->json([

@@ -31,4 +31,11 @@ class ApplicationFeedbackReport extends Model
     {
         return $this->belongsTo(JobApplication::class, 'job_application_id');
     }
+
+    public function categories()
+    {
+        return $this->hasMany(ApplicationFeedbackCategory::class, 'job_application_id', 'job_application_id')
+            ->orderBy('position')
+            ->orderBy('id');
+    }
 }

@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock3,
   FileText,
+  Star,
   X,
 } from 'lucide-react';
 import api from '../api/axios';
@@ -153,6 +154,7 @@ export default function DetailStatusLamaran() {
   }
 
   const { merchant, job, student, documents, completeness, timeline, follow_up: followUp, histories } = application;
+  const performance = application.interview_performance;
 
   return (
     <StudentShell active="Lamaran saya">
@@ -256,6 +258,90 @@ export default function DetailStatusLamaran() {
                 })}
               </div>
             </section>
+
+            {/* Performa wawancara dari penilaian merchant */}
+            {performance && (
+              <section className="rounded-xl border border-pk-border bg-white px-6 py-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-[16px] font-bold text-pk-navy">Performa Wawancara</h2>
+                    <p className="mt-1 text-[11.5px] text-pk-muted">
+                      Penilaian dari tim rekrutmen {merchant.merchant_name} berdasarkan sesi wawancara.
+                    </p>
+                  </div>
+                  {performance.recommendation && (
+                    <span className="rounded bg-pk-pastel px-2.5 py-1 text-[10.5px] font-semibold text-pk-primary">
+                      {performance.recommendation}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg bg-[#EFF7FB] px-5 py-4">
+                  <div>
+                    <p className="text-[10px] text-pk-muted">Total skor</p>
+                    <p className="mt-0.5 text-[24px] font-extrabold leading-none text-pk-navy">
+                      {performance.total_score}
+                      <span className="text-[13px] font-semibold text-pk-primary"> / {performance.max_score}</span>
+                    </p>
+                  </div>
+
+                  <span className="hidden h-10 w-px bg-pk-border sm:block" />
+
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-pk-muted">Sesi wawancara</p>
+                    <p className="mt-0.5 text-[11.5px] font-semibold text-pk-body">
+                      {performance.interview.date_label} · {performance.interview.time_label}
+                    </p>
+                    <p className="text-[10.5px] text-pk-muted">
+                      {performance.interview.method} · {performance.interview.location}
+                    </p>
+                  </div>
+
+                  {performance.evaluated_at_label && (
+                    <p className="ml-auto text-[10.5px] text-pk-muted">
+                      Dinilai {performance.evaluated_at_label}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-4 divide-y divide-pk-line">
+                  {(performance.criteria || []).map((criterion, index) => (
+                    <div key={`${criterion.label}-${index}`} className="py-3 first:pt-0 last:pb-0">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-[12px] font-semibold text-pk-navy">{criterion.label}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-3.5 w-3.5 ${
+                                  star <= criterion.score
+                                    ? 'fill-pk-gold text-pk-gold'
+                                    : 'fill-pk-border text-pk-border'
+                                }`}
+                              />
+                            ))}
+                          </span>
+                          <span className="text-[11px] font-semibold text-pk-body">{criterion.score}/5</span>
+                        </div>
+                      </div>
+                      {criterion.note && (
+                        <p className="mt-1 text-[11px] leading-[1.65] text-pk-muted">{criterion.note}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {performance.feedback && (
+                  <div className="mt-3 rounded-lg bg-pk-canvas px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-pk-muted">
+                      Catatan untuk kandidat
+                    </p>
+                    <p className="mt-1 text-[11.5px] leading-[1.7] text-pk-body">{performance.feedback}</p>
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* Tindak lanjut */}
             <section className={`rounded-xl px-6 py-5 ${followUp.tone === 'danger' ? 'bg-[#FDECEC]' : 'bg-[#D9F3F8]'}`}>

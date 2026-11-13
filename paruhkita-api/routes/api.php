@@ -68,6 +68,9 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/merchant/applications/{jobApplication}', [JobController::class, 'merchantApplicationDetail']);
     Route::get('/merchant/applications/{jobApplication}/feedback-report', [ApplicationFeedbackController::class, 'show']);
     Route::post('/merchant/applications/{jobApplication}/feedback-report', [ApplicationFeedbackController::class, 'save']);
+    Route::post('/merchant/applications/{jobApplication}/feedback/categories', [ApplicationFeedbackController::class, 'storeCategory']);
+    Route::put('/merchant/applications/{jobApplication}/feedback/categories/{category}', [ApplicationFeedbackController::class, 'updateCategory']);
+    Route::delete('/merchant/applications/{jobApplication}/feedback/categories/{category}', [ApplicationFeedbackController::class, 'destroyCategory']);
     Route::get('/merchant/applications/{jobApplication}/documents/{documentId}', [JobController::class, 'merchantDownloadDocument']);
 
     // --- JADWAL SELEKSI & PENILAIAN KANDIDAT ---

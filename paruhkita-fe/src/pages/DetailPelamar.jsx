@@ -50,42 +50,6 @@ export default function DetailPelamar() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const [report, setReport] = useState(null);
-  const [reportForm, setReportForm] = useState({
-    cv_score: '',
-    portfolio_score: '',
-    skills_score: '',
-    cv_note: '',
-    portfolio_note: '',
-    skills_note: '',
-    recommendations: '',
-  });
-  const [reportSaving, setReportSaving] = useState(false);
-  const [reportMessage, setReportMessage] = useState('');
-  const [reportError, setReportError] = useState('');
-
-  const fetchReport = useCallback(() => {
-    api.get(`/v1/merchant/applications/${applicationId}/feedback-report`)
-      .then(({ data }) => {
-        const current = data.data?.report;
-        setReport(current);
-        if (current) {
-          setReportForm({
-            cv_score: current.cv_score ?? '',
-            portfolio_score: current.portfolio_score ?? '',
-            skills_score: current.skills_score ?? '',
-            cv_note: current.cv_note || '',
-            portfolio_note: current.portfolio_note || '',
-            skills_note: current.skills_note || '',
-            recommendations: (current.recommendations || []).join('\n'),
-          });
-        }
-      })
-      .catch(() => {
-        // Dokumen masukan belum ada — biarkan form kosong.
-      });
-  }, [applicationId]);
-
   const fetchDetail = useCallback(() => {
     setLoading(true);
     setErrorMessage('');
@@ -108,8 +72,7 @@ export default function DetailPelamar() {
 
   useEffect(() => {
     fetchDetail();
-    fetchReport();
-  }, [fetchDetail, fetchReport]);
+  }, [fetchDetail]);
 
   const handleDownloadDocument = async (doc) => {
     setDownloadingId(doc.id);
@@ -169,43 +132,6 @@ export default function DetailPelamar() {
     }
   };
 
-  const handleSaveReport = async (status) => {
-    setReportError('');
-    setReportMessage('');
-
-    if (status === 'final') {
-      if (!reportForm.cv_score || !reportForm.portfolio_score || !reportForm.skills_score) {
-        setReportError('Semua skor wajib diisi sebelum dokumen masukan difinalisasi.');
-        return;
-      }
-    }
-
-    setReportSaving(true);
-    try {
-      const { data } = await api.post(`/v1/merchant/applications/${applicationId}/feedback-report`, {
-        cv_score: reportForm.cv_score ? Number(reportForm.cv_score) : null,
-        portfolio_score: reportForm.portfolio_score ? Number(reportForm.portfolio_score) : null,
-        skills_score: reportForm.skills_score ? Number(reportForm.skills_score) : null,
-        cv_note: reportForm.cv_note || null,
-        portfolio_note: reportForm.portfolio_note || null,
-        skills_note: reportForm.skills_note || null,
-        recommendations: reportForm.recommendations
-          .split('\n')
-          .map((line) => line.trim())
-          .filter(Boolean),
-        status,
-      });
-      setReport(data.data.report);
-      setReportMessage(data.message);
-    } catch (error) {
-      const validationErrors = error.response?.data?.errors;
-      const firstValidationMsg = validationErrors ? Object.values(validationErrors).flat()[0] : null;
-      setReportError(firstValidationMsg || error.response?.data?.message || 'Gagal menyimpan dokumen masukan.');
-    } finally {
-      setReportSaving(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F6F9FC] flex items-center justify-center text-xs text-[#536B82]">
@@ -221,10 +147,10 @@ export default function DetailPelamar() {
           <p className="text-sm font-bold text-rose-700">{errorMessage || 'Data pelamar tidak ditemukan.'}</p>
           <button
             type="button"
-            onClick={() => navigate('/merchant/dashboard')}
+            onClick={() => navigate('/merchant/candidates')}
             className="px-4 py-2 rounded-xl bg-[#023E8A] text-white text-xs font-bold"
           >
-            Kembali ke Dashboard
+            Kembali ke Daftar Pelamar
           </button>
         </div>
       </div>
@@ -239,6 +165,7 @@ export default function DetailPelamar() {
   const documents = application.documents || [];
   const histories = application.status_histories || [];
   const jobPost = application.job_post || {};
+  const report = application.feedback_report || null;
 
   return (
     <div className="min-h-screen bg-[#F6F9FC]">
@@ -251,7 +178,7 @@ export default function DetailPelamar() {
               onClick={() =>
                 jobPost.id
                   ? navigate(`/merchant/jobs/${jobPost.id}/applicants`)
-                  : navigate('/merchant/dashboard')
+                  : navigate('/merchant/candidates')
               }
               className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2 text-xs font-semibold transition"
             >
@@ -533,99 +460,36 @@ export default function DetailPelamar() {
           </section>
 
           {/* Dokumen Masukan (Feedback Report) */}
-          <section className="rounded-2xl border border-[#D8E5EE] bg-white p-5">
-            <div className="mb-4 flex items-start justify-between gap-2">
-              <h2 className="text-base font-extrabold text-[#03045E]">Dokumen Masukan</h2>
-              <span
-                className={`rounded-md px-2 py-1 text-[10px] font-bold ${
-                  report?.status === 'final'
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-amber-50 text-amber-700'
-                }`}
+          {application.status === 'rejected' && (
+            <section className="rounded-2xl border border-[#D8E5EE] bg-white p-5">
+              <div className="flex items-start justify-between gap-2">
+                <h2 className="text-base font-extrabold text-[#03045E]">Dokumen Masukan</h2>
+                {report && (
+                  <span
+                    className={`rounded-md px-2 py-1 text-[10px] font-bold ${
+                      report.status === 'final'
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'bg-amber-50 text-amber-700'
+                    }`}
+                  >
+                    {report.status === 'final' ? 'Final' : 'Draf'}
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-[#536B82]">
+                {report?.status === 'final'
+                  ? 'Feedback sudah dikirim ke kandidat. Kamu masih dapat memperbarui evaluasi dan mengirimkannya kembali.'
+                  : 'Berikan evaluasi per kategori dan rekomendasi perbaikan untuk kandidat yang belum diterima.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate(`/merchant/applications/${application.id}/feedback`)}
+                className="mt-3 w-full rounded-xl bg-[#023E8A] px-3 py-2.5 text-xs font-bold text-white transition hover:bg-[#03045E]"
               >
-                {report?.status === 'final' ? 'Final' : 'Draf'}
-              </span>
-            </div>
-            <p className="mb-3 text-[11px] leading-relaxed text-[#536B82]">
-              Skor dan catatan ini tampil sebagai feedback report di halaman mahasiswa setelah difinalisasi.
-            </p>
-
-            {reportError && (
-              <p role="alert" className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-medium text-rose-700">
-                {reportError}
-              </p>
-            )}
-            {reportMessage && (
-              <p role="status" className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-medium text-emerald-700">
-                {reportMessage}
-              </p>
-            )}
-
-            <div className="space-y-3">
-              {[
-                ['cv', 'Dokumen CV'],
-                ['portfolio', 'Portofolio'],
-                ['skills', 'Keterampilan (Skills)'],
-              ].map(([key, label]) => (
-                <div key={key} className="rounded-xl border border-[#D8E5EE] p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <label htmlFor={`score-${key}`} className="text-xs font-bold text-[#03045E]">{label}</label>
-                    <select
-                      id={`score-${key}`}
-                      value={reportForm[`${key}_score`]}
-                      onChange={(event) => setReportForm((current) => ({ ...current, [`${key}_score`]: event.target.value }))}
-                      className="rounded-lg border border-[#D8E5EE] px-2 py-1 text-xs font-semibold text-[#03045E] focus:border-[#0077B6] focus:outline-none"
-                    >
-                      <option value="">-</option>
-                      {[1, 2, 3, 4, 5].map((score) => (
-                        <option key={score} value={score}>{score} / 5</option>
-                      ))}
-                    </select>
-                  </div>
-                  <textarea
-                    rows={2}
-                    value={reportForm[`${key}_note`]}
-                    onChange={(event) => setReportForm((current) => ({ ...current, [`${key}_note`]: event.target.value }))}
-                    placeholder="Catatan evaluasi..."
-                    className="mt-2 w-full rounded-lg border border-[#D8E5EE] p-2 text-[11px] text-[#03045E] focus:border-[#0077B6] focus:outline-none"
-                  />
-                </div>
-              ))}
-
-              <div>
-                <label htmlFor="report-recommendations" className="mb-1.5 block text-xs font-bold text-[#03045E]">
-                  Rekomendasi perbaikan <span className="font-normal text-[#536B82]">(satu per baris)</span>
-                </label>
-                <textarea
-                  id="report-recommendations"
-                  rows={4}
-                  value={reportForm.recommendations}
-                  onChange={(event) => setReportForm((current) => ({ ...current, recommendations: event.target.value }))}
-                  placeholder="Perbaiki CV dengan contoh pencapaian..."
-                  className="w-full rounded-xl border border-[#D8E5EE] p-3 text-[11px] text-[#03045E] focus:border-[#0077B6] focus:outline-none"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={reportSaving}
-                  onClick={() => handleSaveReport('draft')}
-                  className="flex-1 rounded-xl border border-[#D8E5EE] bg-white px-3 py-2.5 text-xs font-bold text-[#536B82] transition hover:bg-[#F6F9FC] disabled:opacity-60"
-                >
-                  Simpan Draf
-                </button>
-                <button
-                  type="button"
-                  disabled={reportSaving}
-                  onClick={() => handleSaveReport('final')}
-                  className="flex-1 rounded-xl bg-[#023E8A] px-3 py-2.5 text-xs font-bold text-white transition hover:bg-[#03045E] disabled:opacity-60"
-                >
-                  {reportSaving ? 'Menyimpan...' : 'Finalisasi'}
-                </button>
-              </div>
-            </div>
-          </section>
+                Beri Masukan
+              </button>
+            </section>
+          )}
 
           {/* Riwayat Perubahan Status */}
           <section className="rounded-2xl border border-[#D8E5EE] bg-white p-5">

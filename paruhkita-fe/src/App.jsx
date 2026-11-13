@@ -27,6 +27,9 @@ import PortfolioList from './pages/PortfolioList';
 // Pages Merchant 
 import MerchantDashboard from './pages/MerchantDashboard';
 import MerchantJadwal from './pages/MerchantJadwal';
+import MerchantFeedback from './pages/MerchantFeedback';
+import MerchantFeedbackSuccess from './pages/MerchantFeedbackSuccess';
+import MerchantCandidates from './pages/MerchantCandidates';
 import KelolaPelamarLowongan from './pages/KelolaPelamarLowongan';
 import DetailPelamar from './pages/DetailPelamar';
 import DashboardSurveiMerchant from './pages/DashboardSurveiMerchant';
@@ -88,6 +91,14 @@ export default function App() {
             }
           />
           <Route
+            path="/merchant/candidates"
+            element={
+              <ProtectedRoute>
+                <MerchantCandidates />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/merchant/jobs/:jobId/applicants"
             element={
               <ProtectedRoute>
@@ -104,6 +115,22 @@ export default function App() {
                 <MerchantLayout>
                   <DetailPelamar />
                 </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/applications/:applicationId/feedback"
+            element={
+              <ProtectedRoute>
+                <MerchantFeedback />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/applications/:applicationId/feedback/success"
+            element={
+              <ProtectedRoute>
+                <MerchantFeedbackSuccess />
               </ProtectedRoute>
             }
           />

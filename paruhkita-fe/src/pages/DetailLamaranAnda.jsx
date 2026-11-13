@@ -74,6 +74,14 @@ export default function DetailLamaranAnda() {
   const decisionLabel = report?.decision?.label || 'Belum Diterima / Ditolak';
   const decidedAt = report?.decision?.decided_at_label;
 
+  const summaryScores = report?.summary_scores?.length
+    ? report.summary_scores
+    : [
+        { key: 'cv', label: 'Dokumen CV', score: report?.scores?.cv },
+        { key: 'portfolio', label: 'Portofolio', score: report?.scores?.portfolio },
+        { key: 'skills', label: 'Keterampilan (Skills)', score: report?.scores?.skills },
+      ];
+
   return (
     <StudentShell active="Lamaran saya">
       <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-10 py-7">
@@ -168,10 +176,10 @@ export default function DetailLamaranAnda() {
           </p>
 
           {report && (
-            <div className="mt-4 grid gap-4 rounded-md bg-[#EFF7FB] px-5 py-4 sm:grid-cols-3">
-              <ScoreBox label="Dokumen CV" score={report.scores?.cv} />
-              <ScoreBox label="Portofolio" score={report.scores?.portfolio} />
-              <ScoreBox label="Keterampilan (Skills)" score={report.scores?.skills} />
+            <div className={`mt-4 grid gap-4 rounded-md bg-[#EFF7FB] px-5 py-4 ${summaryScores.length > 3 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'}`}>
+              {summaryScores.map((item) => (
+                <ScoreBox key={item.key} label={item.label} score={item.score} />
+              ))}
             </div>
           )}
         </section>

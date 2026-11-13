@@ -164,7 +164,7 @@ export default function MerchantJadwal() {
         evaluationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 120);
     } catch (error) {
-      setToast({ type: 'error', message: error?.response?.data?.message || 'Gagal memuat formulir penilaian.' });
+      setToast({ type: 'error', message: error?.response?.data?.message || 'Gagal memuat formulir performa wawancara.' });
     } finally {
       setEvaluationLoading(false);
     }
@@ -398,7 +398,7 @@ export default function MerchantJadwal() {
 
         {evaluationLoading && (
           <p className="rounded-xl border border-pk-border bg-white p-4 text-[12px] text-pk-muted">
-            Memuat formulir penilaian...
+            Memuat formulir performa wawancara...
           </p>
         )}
 

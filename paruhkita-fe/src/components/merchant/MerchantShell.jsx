@@ -16,7 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 const NAV_ITEMS = [
   { key: 'Ringkasan', icon: LayoutGrid, to: '/merchant/dashboard' },
   { key: 'Lowongan', icon: Briefcase, to: '/merchant/dashboard', badgeKey: 'jobs' },
-  { key: 'Kandidat', icon: Users, to: '/merchant/dashboard', badgeKey: 'candidates' },
+  { key: 'Kandidat', icon: Users, to: '/merchant/candidates', badgeKey: 'candidates' },
   { key: 'Jadwal', icon: CalendarDays, to: '/merchant/jadwal' },
   { key: 'Pesan', icon: MessageCircle, to: '/merchant/dashboard', badgeKey: 'messages' },
   { key: 'Pengaturan', icon: Settings, to: '/merchant/settings' },
@@ -33,7 +33,15 @@ function initialsOf(name) {
     .toUpperCase();
 }
 
-export default function MerchantShell({ active = 'Jadwal', merchant, counts = {}, children }) {
+export default function MerchantShell({
+  active = 'Jadwal',
+  activeTopNav = 'Dashboard',
+  merchant,
+  counts = {},
+  showTips = true,
+  contentClassName = 'px-6 py-7 lg:pl-16 lg:pr-8',
+  children,
+}) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -63,13 +71,25 @@ export default function MerchantShell({ active = 'Jadwal', merchant, counts = {}
         </button>
 
         <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 text-[13px] font-semibold md:flex">
-          <button type="button" onClick={() => navigate('/merchant/dashboard')} className="text-white transition hover:text-pk-pastel">
+          <button
+            type="button"
+            onClick={() => navigate('/merchant/dashboard')}
+            className={`transition ${activeTopNav === 'Dashboard' ? 'text-pk-pastel' : 'text-white hover:text-pk-pastel'}`}
+          >
             Dashboard
           </button>
-          <button type="button" onClick={() => navigate('/merchant/dashboard')} className="text-white/80 transition hover:text-white">
+          <button
+            type="button"
+            onClick={() => navigate('/merchant/candidates')}
+            className={`transition ${activeTopNav === 'Kandidat' ? 'text-pk-pastel' : 'text-white/80 hover:text-white'}`}
+          >
             Kandidat
           </button>
-          <button type="button" onClick={() => navigate('/merchant/dashboard')} className="text-white/80 transition hover:text-white">
+          <button
+            type="button"
+            onClick={() => navigate('/merchant/dashboard')}
+            className={`transition ${activeTopNav === 'Lowongan' ? 'text-pk-pastel' : 'text-white/80 hover:text-white'}`}
+          >
             Lowongan
           </button>
         </nav>
@@ -148,18 +168,20 @@ export default function MerchantShell({ active = 'Jadwal', merchant, counts = {}
               </button>
             </div>
 
-            <div className="mt-4 rounded-xl bg-pk-soft px-4 py-3">
-              <p className="text-[11px] font-bold text-pk-navy">Tips Seleksi</p>
-              <p className="mt-1 text-[10.5px] leading-relaxed text-pk-muted">
-                Berikan feedback maksimal 3 hari setelah wawancara agar kandidat tetap terhubung.
-              </p>
-            </div>
+            {showTips && (
+              <div className="mt-4 rounded-xl bg-pk-soft px-4 py-3">
+                <p className="text-[11px] font-bold text-pk-navy">Tips Seleksi</p>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-pk-muted">
+                  Berikan feedback maksimal 3 hari setelah wawancara agar kandidat tetap terhubung.
+                </p>
+              </div>
+            )}
           </div>
         </aside>
 
         {/* Kolom konten + footer */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="flex-1 px-6 py-7 lg:pl-16 lg:pr-8">{children}</main>
+          <main className={`flex-1 ${contentClassName}`}>{children}</main>
 
           <footer className="flex flex-col items-center justify-between gap-3 bg-pk-navy px-6 py-5 text-white sm:flex-row lg:px-8">
             <div className="flex items-center gap-3">

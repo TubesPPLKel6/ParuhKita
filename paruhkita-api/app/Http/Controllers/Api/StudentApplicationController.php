@@ -106,6 +106,7 @@ class StudentApplicationController extends Controller
                 'completeness' => $this->completeness($application, $documents),
                 'timeline' => $this->timeline($application, $histories, $interview),
                 'interview' => $interview ? $this->interviewDetails($interview) : null,
+                'interview_performance' => $this->interviewPerformance($application),
                 'follow_up' => $this->followUp($application, $status, $reportAvailable),
                 'histories' => $histories->map(fn ($history) => [
                     'id' => $history->id,
@@ -125,6 +126,13 @@ class StudentApplicationController extends Controller
                         'portfolio' => $report->portfolio_score,
                         'skills' => $report->skills_score,
                     ] : null,
+                    'summary_scores' => $reportAvailable
+                        ? $report->categories->map(fn ($category) => [
+                            'key' => 'cat_' . $category->id,
+                            'label' => $category->name,
+                            'score' => $category->score,
+                        ])->values()
+                        : null,
                 ],
             ],
         ]);
@@ -136,10 +144,22 @@ class StudentApplicationController extends Controller
 
         $report = $jobApplication->feedbackReport;
         abort_unless($report !== null && $report->status === 'final', 404, 'Dokumen masukan belum tersedia.');
+        $report->load('categories');
 
         $application = $jobApplication->loadMissing(['jobPost.merchantProfile', 'student', 'statusHistories']);
         $merchant = $application->jobPost?->merchantProfile;
         $student = $application->student;
+        $categories = $report->categories->values();
+
+        $sections = $categories->map(fn ($category, $index) => [
+            'number' => str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+            'key' => 'cat_' . $category->id,
+            'title' => $category->name,
+            'score' => $category->score,
+            'note' => $category->note,
+        ])->values();
+
+        $scoreByName = fn (string $name) => $categories->firstWhere('name', $name)?->score;
 
         return response()->json([
             'status' => true,
@@ -166,15 +186,16 @@ class StudentApplicationController extends Controller
                 ],
                 'document_status_label' => 'Final - Hanya baca',
                 'scores' => [
-                    'cv' => $report->cv_score,
-                    'portfolio' => $report->portfolio_score,
-                    'skills' => $report->skills_score,
+                    'cv' => $scoreByName('Dokumen CV'),
+                    'portfolio' => $scoreByName('Portofolio'),
+                    'skills' => $scoreByName('Tingkat Keterampilan (Skills)'),
                 ],
-                'sections' => [
-                    ['number' => '01', 'key' => 'cv', 'title' => 'Dokumen CV', 'score' => $report->cv_score, 'note' => $report->cv_note],
-                    ['number' => '02', 'key' => 'portfolio', 'title' => 'Portofolio', 'score' => $report->portfolio_score, 'note' => $report->portfolio_note],
-                    ['number' => '03', 'key' => 'skills', 'title' => 'Tingkat Keterampilan (Skills)', 'score' => $report->skills_score, 'note' => $report->skills_note],
-                ],
+                'summary_scores' => $categories->map(fn ($category) => [
+                    'key' => 'cat_' . $category->id,
+                    'label' => $category->name,
+                    'score' => $category->score,
+                ])->values(),
+                'sections' => $sections,
                 'recommendations' => $report->recommendations ?? [],
             ],
         ]);
@@ -192,9 +213,11 @@ class StudentApplicationController extends Controller
             'student.studentAvailabilities',
             'documents',
             'feedbackReport',
+            'feedbackReport.categories',
             'interviewSchedules' => fn ($query) => $query
                 ->orderByDesc('scheduled_date')
                 ->orderByDesc('start_time'),
+            'interviewSchedules.evaluation',
         ]);
     }
 
@@ -309,9 +332,39 @@ class StudentApplicationController extends Controller
         ];
     }
 
-    private function interviewDetails($interview): array
+    private function interviewPerformance(JobApplication $application): ?array
     {
+        $schedule = $application->interviewSchedules
+            ->first(fn ($item) => $item->evaluation && $item->evaluation->status === 'final');
+
+        if (!$schedule) {
+            return null;
+        }
+
+        $evaluation = $schedule->evaluation;
+        $criteria = collect($evaluation->criteria ?? [])
+            ->map(fn ($criterion) => [
+                'label' => $criterion['label'] ?? 'Kriteria',
+                'score' => (int) ($criterion['score'] ?? 0),
+                'note' => $criterion['note'] ?? null,
+            ])
+            ->values();
+
         return [
+            'available' => true,
+            'total_score' => (int) $evaluation->total_score,
+            'max_score' => max(1, $criteria->count()) * 5,
+            'recommendation' => $evaluation->recommendation,
+            'decision' => $evaluation->decision,
+            'feedback' => $evaluation->feedback,
+            'criteria' => $criteria,
+            'evaluated_at_label' => $evaluation->updated_at ? $this->formatDate($evaluation->updated_at) : null,
+            'interview' => $this->interviewDetails($schedule),
+        ];
+    }
+
+    private function interviewDetails($interview): array
+    {        return [
             'date_label' => $this->formatLongDate($interview->scheduled_date),
             'time_label' => str_replace(':', '.', substr($interview->start_time, 0, 5)) . ' – '
                 . str_replace(':', '.', substr($interview->end_time, 0, 5)) . ' WIB',

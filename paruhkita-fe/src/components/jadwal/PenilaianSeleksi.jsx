@@ -90,8 +90,8 @@ export default function PenilaianSeleksi({ schedule, criteria = [], evaluation, 
     <section className="rounded-xl border border-pk-border bg-white px-6 py-5">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-pk-line pb-4">
         <div>
-          <h2 className="text-[15px] font-bold text-pk-navy">Formulir Penilaian Seleksi</h2>
-          <p className="mt-1 text-[11px] text-pk-muted">Berikan penilaian objektif untuk melengkapi proses seleksi.</p>
+          <h2 className="text-[15px] font-bold text-pk-navy">Formulir Performa Wawancara</h2>
+          <p className="mt-1 text-[11px] text-pk-muted">Berikan penilaian objektif terhadap performa wawancara kandidat.</p>
         </div>
         <div className="flex items-center gap-3 rounded-lg bg-[#F1F7FA] px-3 py-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pk-cyan text-[11px] font-bold text-white">
