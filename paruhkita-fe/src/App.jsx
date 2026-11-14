@@ -2,8 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import StudentShell from './components/student/StudentShell';
 
 
 // Pages Mahasiswa 
@@ -43,22 +42,13 @@ import PublicMerchantProfile from './pages/shared/PublicMerchantProfile';
 import AdminReferenceData from './pages/admin/AdminReferenceData';
 import AdminCampusForm from './pages/admin/AdminCampusForm';
 import AdminMasterForm from './pages/admin/AdminMasterForm';
+import AdminUsers from './pages/admin/AdminUsers';
 import AdminLayout from './components/AdminLayout';
 
 // Layout Standar Mahasiswa //
 function AppLayout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F6F9FC] print:bg-white print:min-h-0 print:block">
-      <div className="print:hidden">
-        <Navbar />
-      </div>
-      <main className="flex-1 print:p-0 print:m-0 print:block">
-        {children}
-      </main>
-      <div className="print:hidden">
-        <Footer />
-      </div>
-    </div>
+    <StudentShell>{children}</StudentShell>
   );
 }
 
@@ -86,7 +76,7 @@ export default function App() {
           <Route
             path="/merchant/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
                   <MerchantDashboard />
                 </MerchantLayout>
@@ -107,7 +97,7 @@ export default function App() {
                  <Route
          path="/merchant/jobs/:jobId/applicants"
          element={
-           <ProtectedRoute>
+           <ProtectedRoute allowedRoles={['merchant']}>
              <MerchantLayout>
                <KelolaPelamarLowongan />
              </MerchantLayout>
@@ -117,7 +107,7 @@ export default function App() {
        <Route
          path="/merchant/applications/:applicationId"
          element={
-           <ProtectedRoute>
+           <ProtectedRoute allowedRoles={['merchant']}>
              <MerchantLayout>
                <DetailPelamar />
              </MerchantLayout>
@@ -129,7 +119,7 @@ export default function App() {
           <Route
             path="/merchant/candidates"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantCandidates />
               </ProtectedRoute>
             }
@@ -137,7 +127,7 @@ export default function App() {
           <Route
             path="/merchant/jobs/:jobId/applicants"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
                   <KelolaPelamarLowongan />
                 </MerchantLayout>
@@ -147,7 +137,7 @@ export default function App() {
           <Route
             path="/merchant/applications/:applicationId"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
                   <DetailPelamar />
                 </MerchantLayout>
@@ -157,7 +147,7 @@ export default function App() {
           <Route
             path="/merchant/applications/:applicationId/feedback"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantFeedback />
               </ProtectedRoute>
             }
@@ -165,7 +155,7 @@ export default function App() {
           <Route
             path="/merchant/applications/:applicationId/feedback/success"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantFeedbackSuccess />
               </ProtectedRoute>
             }
@@ -173,7 +163,7 @@ export default function App() {
           <Route
             path="/merchant/surveys"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
                   <DashboardSurveiMerchant />
                 </MerchantLayout>
@@ -183,7 +173,7 @@ export default function App() {
           <Route
             path="/merchant/jadwal"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantJadwal />
               </ProtectedRoute>
             }
@@ -191,7 +181,7 @@ export default function App() {
           <Route
             path="/merchant/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
                   <MerchantProfile />
                 </MerchantLayout>
@@ -200,7 +190,7 @@ export default function App() {
           />          <Route
             path="/merchant/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
                   <MerchantSettings />
                 </MerchantLayout>
@@ -212,6 +202,14 @@ export default function App() {
              element={
                <ProtectedRoute allowedRoles={['admin']}>
                  <AdminLayout><AdminDashboard /></AdminLayout>
+               </ProtectedRoute>
+             }
+           />
+           <Route
+             path="/admin/users"
+             element={
+               <ProtectedRoute allowedRoles={['admin']}>
+                 <AdminLayout><AdminUsers /></AdminLayout>
                </ProtectedRoute>
              }
            />
@@ -273,7 +271,7 @@ export default function App() {
           <Route
             path="/kesiapan-karier"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <KesiapanKarier />
                 </AppLayout>
@@ -283,7 +281,7 @@ export default function App() {
           <Route
             path="/lowongan"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <CariLowongan />
                 </AppLayout>
@@ -293,7 +291,7 @@ export default function App() {
           <Route
             path="/lowongan/:jobId"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <DetailLowongan />
                 </AppLayout>
@@ -303,7 +301,7 @@ export default function App() {
           <Route
             path="/lowongan/:jobId/lamar"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <LamarLowongan />
                 </AppLayout>
@@ -313,7 +311,7 @@ export default function App() {
           <Route
             path="/perusahaan/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <PublicMerchantProfile />
                 </AppLayout>
@@ -323,7 +321,7 @@ export default function App() {
           <Route
             path="/komunitas"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <Komunitas />
                 </AppLayout>
@@ -333,7 +331,7 @@ export default function App() {
           <Route
             path="/komunitas/survei"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <SurveiKelayakan />
                 </AppLayout>
@@ -343,7 +341,7 @@ export default function App() {
           <Route
             path="/lamaran"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <LamaranSaya />
               </ProtectedRoute>
             }
@@ -351,7 +349,7 @@ export default function App() {
           <Route
             path="/lamaran/:applicationId"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <DetailStatusLamaran />
               </ProtectedRoute>
             }
@@ -359,7 +357,7 @@ export default function App() {
           <Route
             path="/lamaran/:applicationId/rekomendasi"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <DetailLamaranAnda />
               </ProtectedRoute>
             }
@@ -367,7 +365,7 @@ export default function App() {
           <Route
             path="/lamaran/:applicationId/dokumen-masukan"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <DokumenMasukan />
               </ProtectedRoute>
             }
@@ -375,7 +373,7 @@ export default function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <Dashboard />
                 </AppLayout>
@@ -385,7 +383,7 @@ export default function App() {
           <Route
             path="/profil"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <Profile />
                 </AppLayout>
@@ -395,7 +393,7 @@ export default function App() {
           <Route
             path="/cv"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <CvList />
                 </AppLayout>
@@ -405,7 +403,7 @@ export default function App() {
           <Route
             path="/portofolio"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <PortfolioList />
                 </AppLayout>

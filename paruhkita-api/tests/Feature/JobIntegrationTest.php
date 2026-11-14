@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\JobCategory;
+use App\Models\StudentProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -28,6 +29,11 @@ class JobIntegrationTest extends TestCase
             'verification_status' => 'approved',
         ]);
         $student = $this->createUser('mahasiswa', 'student-jobs@test.local');
+        StudentProfile::create([
+            'user_id' => $student->id,
+            'is_verified' => true,
+            'verification_status' => 'approved',
+        ]);
         JobCategory::create([
             'name' => 'Food & Beverage',
             'description' => 'Pekerjaan kuliner.',
@@ -146,12 +152,46 @@ class JobIntegrationTest extends TestCase
         ]);
 
         $student = $this->createUser('mahasiswa', 'applicant@test.local');
+        StudentProfile::create([
+            'user_id' => $student->id,
+            'is_verified' => true,
+            'verification_status' => 'approved',
+        ]);
         $this->actingAs($student, 'sanctum')
             ->post("/api/v1/jobs/{$job->id}/applications", $this->validApplicationData())
             ->assertCreated();
         $this->postJson("/api/v1/jobs/{$job->id}/applications", ['motivation' => 'Saya tertarik dengan pekerjaan ini dan siap berkontribusi.'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('job');
+    }
+
+    public function test_student_without_approved_ktm_cannot_apply(): void
+    {
+        $merchant = $this->createUser('merchant', 'ktm-gate-merchant@test.local');
+        $profile = $merchant->merchantProfile()->create([
+            'merchant_name' => 'Terverifikasi',
+            'is_verified' => true,
+            'verification_status' => 'approved',
+        ]);
+        $job = $profile->jobPosts()->create([
+            'title' => 'Kasir',
+            'category' => 'Retail',
+            'schedule' => 'Sore',
+            'wage' => 'Rp20.000/jam',
+            'location' => 'Yogyakarta',
+            'quota' => 1,
+        ]);
+        $student = $this->createUser('mahasiswa', 'ktm-pending@test.local');
+        StudentProfile::create([
+            'user_id' => $student->id,
+            'is_verified' => false,
+            'verification_status' => 'pending',
+        ]);
+
+        $this->actingAs($student, 'sanctum')
+            ->postJson("/api/v1/jobs/{$job->id}/applications", $this->validApplicationData())
+            ->assertForbidden()
+            ->assertJsonPath('message', 'KTM harus terverifikasi admin sebelum mengajukan lamaran.');
     }
 
     public function test_merchant_job_requires_positive_quota_and_valid_deadline(): void

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\PortfolioController;
 use App\Http\Controllers\Api\MerchantVerificationController;
 use App\Http\Controllers\Api\MerchantProfileController;
 use App\Http\Controllers\Api\AdminReferenceDataController;
+use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\ReferenceDataController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\MerchantScheduleController;
@@ -31,7 +32,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login',    [AuthController::class, 'login']);
     Route::post('/logout',   [AuthController::class, 'logout'])->middleware('auth:sanctum');
-    Route::get('/me',        [AuthController::class, 'me'])->middleware('auth:sanctum');
+    Route::get('/me',        [AuthController::class, 'me'])->middleware(['auth:sanctum', 'account.active']);
 });
 
 // ============================================================
@@ -48,9 +49,12 @@ Route::prefix('v1')->group(function () {
 // ============================================================
 //  ROUTES PRIVATE (harus login dengan Sanctum token)
 // ============================================================
-Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+Route::prefix('v1')->middleware(['auth:sanctum', 'account.active', 'role'])->group(function () {
 
     Route::get('/reference/job-categories', [ReferenceDataController::class, 'jobCategories']);
+    Route::get('/admin/users', [AdminUserController::class, 'index']);
+    Route::get('/admin/users/{user}', [AdminUserController::class, 'show']);
+    Route::patch('/admin/users/{user}', [AdminUserController::class, 'update']);
     Route::get('/student/workplace-surveys/companies', [WorkplaceSurveyController::class, 'companies']);
     Route::get('/student/workplace-survey-reviews', [WorkplaceSurveyController::class, 'studentSummaries']);
     Route::post('/student/workplace-surveys', [WorkplaceSurveyController::class, 'store']);
