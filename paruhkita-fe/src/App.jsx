@@ -26,6 +26,7 @@ import PortfolioList from './pages/student/PortfolioList';
 
 // Pages Merchant 
 import MerchantDashboard from './pages/merchant/MerchantDashboard';
+import MerchantJobs from './pages/merchant/MerchantJobs';
 import MerchantJadwal from './pages/MerchantJadwal';
 import MerchantFeedback from './pages/MerchantFeedback';
 import MerchantFeedbackSuccess from './pages/MerchantFeedbackSuccess';
@@ -88,6 +89,16 @@ export default function App() {
               <ProtectedRoute>
                 <MerchantLayout>
                   <MerchantDashboard />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/jobs"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantLayout>
+                  <MerchantJobs />
                 </MerchantLayout>
               </ProtectedRoute>
             }

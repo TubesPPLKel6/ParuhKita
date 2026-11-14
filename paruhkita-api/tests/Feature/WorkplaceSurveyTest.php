@@ -20,7 +20,7 @@ class WorkplaceSurveyTest extends TestCase
             'category' => 'Makanan & Minuman',
             'schedule' => 'Senin-Jumat sore',
             'wage' => 'Rp25.000/jam',
-            'quota' => '2 orang',
+            'quota' => 2,
             'status' => 'active',
         ]);
         $ratings = [

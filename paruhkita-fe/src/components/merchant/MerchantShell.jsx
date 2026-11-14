@@ -15,7 +15,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const NAV_ITEMS = [
   { key: 'Ringkasan', icon: LayoutGrid, to: '/merchant/dashboard' },
-  { key: 'Lowongan', icon: Briefcase, to: '/merchant/dashboard', badgeKey: 'jobs' },
+  { key: 'Lowongan', icon: Briefcase, to: '/merchant/jobs', badgeKey: 'jobs' },
   { key: 'Kandidat', icon: Users, to: '/merchant/candidates', badgeKey: 'candidates' },
   { key: 'Jadwal', icon: CalendarDays, to: '/merchant/jadwal' },
   { key: 'Pesan', icon: MessageCircle, to: '/merchant/dashboard', badgeKey: 'messages' },
@@ -73,7 +73,7 @@ export default function MerchantShell({
         <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 text-[13px] font-semibold md:flex">
           <button
             type="button"
-            onClick={() => navigate('/merchant/dashboard')}
+            onClick={() => navigate('/merchant/jobs')}
             className={`transition ${activeTopNav === 'Dashboard' ? 'text-pk-pastel' : 'text-white hover:text-pk-pastel'}`}
           >
             Dashboard

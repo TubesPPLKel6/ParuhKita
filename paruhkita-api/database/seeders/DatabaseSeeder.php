@@ -182,8 +182,9 @@ class DatabaseSeeder extends Seeder
                 'category' => 'Food & Beverage',
                 'subcategory' => 'Barista',
                 'schedule' => 'Senin, Rabu, Jumat · 16.00–20.00',
+                'location' => 'Jl. Kaliurang, Yogyakarta',
                 'wage' => 'Rp25.000/jam',
-                'quota' => '2 orang',
+                'quota' => 2,
                 'description' => 'Menyiapkan minuman, melayani pelanggan, dan menjaga kebersihan area kerja.',
             ],
             [
@@ -191,8 +192,9 @@ class DatabaseSeeder extends Seeder
                 'category' => 'Food & Beverage',
                 'subcategory' => 'Pramusaji',
                 'schedule' => 'Sabtu-Minggu · 08.00–13.00',
+                'location' => 'Jl. Kaliurang, Yogyakarta',
                 'wage' => 'Rp23.000/jam',
-                'quota' => '2 orang',
+                'quota' => 2,
                 'description' => 'Membantu pelayanan pelanggan dan menyiapkan area makan.',
             ],
         ] as $jobData) {
