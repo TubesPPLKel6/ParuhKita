@@ -36,6 +36,7 @@ export default function DetailLowongan() {
   const responsibilities = job.responsibilities || 'Menjalankan tugas sesuai kebutuhan operasional dan arahan merchant.';
   const qualifications = job.qualifications || 'Mahasiswa aktif yang komunikatif, bertanggung jawab, dan bersedia mengikuti jadwal kerja.';
   const deadlinePassed = job.application_deadline && new Date(`${job.application_deadline}T23:59:59`) < new Date();
+  const quotaFull = job.remaining_quota === 0;
 
   return (
     <div className="min-h-screen bg-[#F6F9FC] pb-28">
@@ -50,7 +51,7 @@ export default function DetailLowongan() {
             <div>
               <span className="rounded-full bg-[#03045E] px-3 py-1 text-[10px] font-bold text-white">Lowongan aktif</span>
               <h1 className="mt-3 text-2xl font-extrabold text-[#03045E]">{job.title}</h1>
-              <p className="mt-1 text-xs text-[#023E8A]">{merchant.merchant_name || 'Merchant'} · {merchant.address || 'Lokasi tidak dicantumkan'}</p>
+              <p className="mt-1 text-xs text-[#023E8A]">{merchant.merchant_name || 'Merchant'} · {job.location || merchant.address || 'Lokasi tidak dicantumkan'}</p>
             </div>
             <div className="sm:text-right">
               <p className="text-[10px] text-[#536B82]">Estimasi gaji</p>
@@ -86,7 +87,7 @@ export default function DetailLowongan() {
                 <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#03045E] text-xs font-bold text-white">{(merchant.merchant_name || 'PK').slice(0, 2).toUpperCase()}</div>
                 <div><h2 className="text-sm font-bold text-[#03045E]">{merchant.merchant_name || 'Merchant'}</h2><p className="text-[10px] text-[#536B82]">Usaha terverifikasi</p></div>
               </div>
-              <p className="mt-4 flex items-center gap-1 text-xs text-[#536B82]"><MapPin size={14} /> {merchant.address || 'Lokasi tidak dicantumkan'}</p>
+              <p className="mt-4 flex items-center gap-1 text-xs text-[#536B82]"><MapPin size={14} /> {job.location || merchant.address || 'Lokasi tidak dicantumkan'}</p>
             </section>
             <section className={cardClass}>
               <h2 className="text-base font-bold text-[#03045E]">Batas Akhir Lamaran</h2>
@@ -100,8 +101,8 @@ export default function DetailLowongan() {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#D8E5EE] bg-white px-4 py-3 shadow-lg">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
           <div className="min-w-0"><p className="truncate text-xs font-bold text-[#03045E]">{job.title} · {merchant.merchant_name}</p><p className="text-[10px] text-[#536B82]">{job.wage} · {job.quota} tersedia</p></div>
-          <button type="button" disabled={job.is_applied || deadlinePassed} onClick={() => navigate(`/lowongan/${job.id}/lamar`)} className="shrink-0 rounded-md bg-[#F59E0B] px-5 py-2.5 text-xs font-bold text-[#03045E] transition hover:bg-[#D97706] disabled:cursor-not-allowed disabled:opacity-60">
-            {job.is_applied ? 'Sudah Dilamar' : deadlinePassed ? 'Lamaran Ditutup' : 'Lamar Sekarang'}
+          <button type="button" disabled={job.is_applied || deadlinePassed || quotaFull} onClick={() => navigate(`/lowongan/${job.id}/lamar`)} className="shrink-0 rounded-md bg-[#F59E0B] px-5 py-2.5 text-xs font-bold text-[#03045E] transition hover:bg-[#D97706] disabled:cursor-not-allowed disabled:opacity-60">
+            {job.is_applied ? 'Sudah Dilamar' : quotaFull ? 'Kuota Penuh' : deadlinePassed ? 'Lamaran Ditutup' : 'Lamar Sekarang'}
           </button>
         </div>
       </div>
