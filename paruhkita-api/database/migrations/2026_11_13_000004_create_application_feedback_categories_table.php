@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_default')->default(false);
             $table->timestamps();
 
-            $table->index(['job_application_id', 'position']);
+            $table->index(['job_application_id', 'position'], 'feedback_categories_app_position_idx');
         });
 
         // Backfill kategori bawaan dari laporan feedback yang sudah ada.

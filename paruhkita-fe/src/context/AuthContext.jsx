@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }) => {
     const { token: receivedToken, user: receivedUser } = data;
     localStorage.setItem('pk_token', receivedToken);
     localStorage.setItem('pk_user', JSON.stringify(receivedUser));
+    sessionStorage.removeItem('pk_dismissed_notifications');
     setToken(receivedToken);
     setUser(receivedUser);
     return res.data;
