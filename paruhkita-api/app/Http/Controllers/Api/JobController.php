@@ -16,8 +16,6 @@ class JobController extends Controller
 {
     public function index(Request $request)
     {
-        abort_unless($request->user()->role === 'mahasiswa', 403, 'Akses hanya untuk mahasiswa.');
-
         $jobs = JobPost::query()
             ->where('status', 'active')
             ->where(fn ($query) => $query->whereNull('application_deadline')->orWhereDate('application_deadline', '>=', now()->toDateString()))
@@ -35,7 +33,6 @@ class JobController extends Controller
 
     public function show(Request $request, JobPost $jobPost)
     {
-        abort_unless($request->user()->role === 'mahasiswa', 403, 'Akses hanya untuk mahasiswa.');
         abort_unless(
             $jobPost->status === 'active'
                 && $jobPost->merchantProfile()->where('is_verified', true)->exists()
@@ -117,7 +114,12 @@ class JobController extends Controller
 
     public function apply(Request $request, JobPost $jobPost)
     {
-        abort_unless($request->user()->role === 'mahasiswa', 403, 'Akses hanya untuk mahasiswa.');
+        $studentProfile = $request->user()->studentProfile;
+        abort_unless(
+            $studentProfile?->is_verified && $studentProfile->verification_status === 'approved',
+            403,
+            'KTM harus terverifikasi admin sebelum mengajukan lamaran.'
+        );
         abort_unless(
             $jobPost->status === 'active' && $jobPost->merchantProfile()->where('is_verified', true)->exists(),
             404,
@@ -207,7 +209,6 @@ class JobController extends Controller
 
     public function studentApplications(Request $request)
     {
-        abort_unless($request->user()->role === 'mahasiswa', 403, 'Akses hanya untuk mahasiswa.');
         $applications = JobApplication::where('user_id', $request->user()->id)
             ->with(['jobPost.merchantProfile:id,merchant_name,address', 'documents', 'statusHistories', 'student:id,name,email', 'student.studentProfile:user_id,university,major'])
             ->latest()
@@ -314,7 +315,6 @@ class JobController extends Controller
 
     private function verifiedMerchantProfile(Request $request)
     {
-        abort_unless($request->user()->role === 'merchant', 403, 'Akses hanya untuk merchant.');
         $profile = $request->user()->merchantProfile;
         abort_unless($profile && $profile->is_verified, 403, 'Usaha harus terverifikasi untuk mengelola lowongan.');
 

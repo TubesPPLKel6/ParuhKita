@@ -1,13 +1,15 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Search } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Bell, ChevronLeft, ChevronRight, ClipboardList, GraduationCap, LogOut, Search, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Footer from '../Footer';
+import useSidebarCollapsed from '../../hooks/useSidebarCollapsed';
 
 const NAV_ITEMS = [
-  { key: 'Cari lowongan', to: '/lowongan' },
-  { key: 'Kesiapan karier', to: '/kesiapan-karier' },
-  { key: 'Lamaran saya', to: '/lamaran' },
-  { key: 'Komunitas', to: '/komunitas' },
+  { key: 'Cari lowongan', icon: Search, to: '/lowongan' },
+  { key: 'Kesiapan karier', icon: GraduationCap, to: '/kesiapan-karier' },
+  { key: 'Lamaran saya', icon: ClipboardList, to: '/lamaran' },
+  { key: 'Komunitas', icon: Users, to: '/komunitas' },
 ];
 
 function initialsOf(name) {
@@ -33,36 +35,31 @@ function BrandMark({ className = 'h-8 w-8' }) {
   );
 }
 
-export default function StudentShell({ active = 'Lamaran saya', children, searchValue = '', onSearchChange }) {
-  const { user } = useAuth();
+export default function StudentShell({ active, children, searchValue = '', onSearchChange }) {
+  const { user, logout } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
+  const [sidebarCollapsed, toggleSidebar] = useSidebarCollapsed('student');
   const firstName = user?.name ? user.name.split(' ')[0] : 'Mahasiswa';
+  const activeItem = active || NAV_ITEMS.find((item) => (
+    location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
+  ))?.key;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-pk-canvas">
-      <header className="sticky top-0 z-40 h-16 shrink-0 bg-pk-navy text-white">
-        <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-6 lg:px-10">
+    <div className="flex min-h-screen flex-col bg-pk-canvas print:min-h-0 print:bg-white">
+      <header className="sticky top-0 z-40 h-16 shrink-0 bg-pk-navy text-white shadow-sm print:hidden">
+        <div className="mx-auto flex h-full max-w-[1440px] items-center px-6 lg:px-10">
           <Link to="/lowongan" className="flex shrink-0 items-center gap-2.5">
             <BrandMark />
             <span className="text-[19px] font-extrabold tracking-tight">ParuhKita</span>
           </Link>
 
-          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 text-[13px] font-semibold md:flex">
-            {NAV_ITEMS.map((item) => {
-              const isActive = item.key === active;
-              return (
-                <Link
-                  key={item.key}
-                  to={item.to}
-                  className={`transition ${isActive ? 'text-pk-pastel' : 'text-white/90 hover:text-white'}`}
-                >
-                  {item.key}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex items-center gap-3 sm:gap-4">
             <div className="hidden w-[232px] items-center gap-2 rounded-full border border-[#4C7FB8] bg-[#0B3C8A]/40 px-3.5 py-2 sm:flex">
               <Search className="h-3.5 w-3.5 shrink-0 text-white/70" />
               <input
@@ -79,40 +76,105 @@ export default function StudentShell({ active = 'Lamaran saya', children, search
               />
             </div>
 
-            <button type="button" className="text-white/85 transition hover:text-white" title="Pemberitahuan">
+            <button type="button" className="text-white/85 transition hover:text-white" title="Pemberitahuan" aria-label="Pemberitahuan">
               <Bell className="h-5 w-5" />
             </button>
 
-            <Link to="/profil" className="flex items-center gap-2.5">
+            <Link to="/profil" className="flex items-center gap-2.5" title="Profil">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#023E8A] text-[11px] font-bold text-white ring-1 ring-white/25">
                 {initialsOf(user?.name)}
               </span>
               <span className="hidden text-[12.5px] font-semibold text-white sm:block">{firstName}</span>
             </Link>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="hidden items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold text-white/85 transition hover:border-white/50 hover:text-white sm:flex"
+              title="Keluar dari akun"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Keluar</span>
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1">{children}</main>
-
-      <footer className="bg-pk-navy text-white">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-4 px-6 py-6 lg:grid-cols-[1fr_auto_1fr] lg:px-10">
-          <div className="flex items-center gap-2.5">
-            <BrandMark className="h-7 w-7" />
-            <span className="text-[15px] font-extrabold tracking-tight">ParuhKita</span>
+      <div className="flex min-h-0 flex-1">
+        <aside className={`hidden shrink-0 flex-col border-r border-pk-border bg-white transition-[width] duration-200 lg:flex print:hidden ${sidebarCollapsed ? 'w-[72px]' : 'w-[221px]'}`}>
+          <div className={`flex items-center border-b border-pk-border py-3 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-end px-3'}`}>
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-label={sidebarCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+              aria-expanded={!sidebarCollapsed}
+              title={sidebarCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+              className="grid h-8 w-8 place-items-center rounded-lg text-pk-muted transition hover:bg-pk-soft hover:text-pk-navy"
+            >
+              {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </button>
           </div>
-          <p className="text-[11px] text-white/75 lg:text-center">
-            Langkah kecil, masa depan besar. &copy; 2026 ParuhKita
-          </p>
-          <nav className="flex items-center gap-5 text-[11.5px] font-medium text-white/85 lg:justify-end">
-            <a href="#" className="transition hover:text-white">Pusat bantuan</a>
-            <span className="text-white/30">·</span>
-            <a href="#" className="transition hover:text-white">Privasi</a>
-            <span className="text-white/30">·</span>
-            <a href="#" className="transition hover:text-white">Ketentuan</a>
+
+          {!sidebarCollapsed && (
+            <div className="border-b border-pk-border px-5 py-5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-pk-muted">Ruang Mahasiswa</p>
+              <h2 className="mt-1 text-base font-bold leading-tight text-pk-navy">{firstName}</h2>
+              <p className="mt-1 text-[11px] leading-relaxed text-pk-muted">Jelajahi peluang dan persiapkan kariermu.</p>
+            </div>
+          )}
+
+          <nav aria-label="Navigasi mahasiswa" className={`space-y-1 py-4 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = item.key === activeItem;
+
+              return (
+                <Link
+                  key={item.key}
+                  to={item.to}
+                  aria-current={isActive ? 'page' : undefined}
+                  title={sidebarCollapsed ? item.key : undefined}
+                  className={`flex items-center rounded-lg py-2.5 text-[13px] font-semibold transition ${
+                    sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'
+                  } ${
+                    isActive
+                      ? 'bg-pk-primary text-white shadow-xs'
+                      : 'text-pk-muted hover:bg-pk-soft hover:text-pk-navy'
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-pk-muted'}`} />
+                  {!sidebarCollapsed && <span>{item.key}</span>}
+                </Link>
+              );
+            })}
           </nav>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <nav aria-label="Navigasi mahasiswa" className="flex gap-2 overflow-x-auto border-b border-pk-border bg-white px-4 py-2 text-xs lg:hidden print:hidden">
+            {NAV_ITEMS.map((item) => {
+              const isActive = item.key === activeItem;
+              return (
+                <Link
+                  key={item.key}
+                  to={item.to}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`shrink-0 rounded-lg px-3 py-2 font-semibold transition ${
+                    isActive ? 'bg-pk-primary text-white' : 'text-pk-muted hover:bg-pk-soft hover:text-pk-navy'
+                  }`}
+                >
+                  {item.key}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <main className="flex-1 print:m-0 print:block print:p-0">{children}</main>
+          <div className="print:hidden">
+            <Footer />
+          </div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }

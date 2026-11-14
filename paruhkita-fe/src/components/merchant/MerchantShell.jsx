@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
+  ChevronLeft,
+  ChevronRight,
   LayoutGrid,
   Briefcase,
   Users,
@@ -12,6 +14,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import useSidebarCollapsed from '../../hooks/useSidebarCollapsed';
 
 const NAV_ITEMS = [
   { key: 'Ringkasan', icon: LayoutGrid, to: '/merchant/dashboard' },
@@ -44,6 +47,7 @@ export default function MerchantShell({
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [sidebarCollapsed, toggleSidebar] = useSidebarCollapsed('merchant');
 
   const merchantName = merchant?.merchant_name || user?.name || 'Ruang Merchant';
   const address = merchant?.address || user?.phone || '';
@@ -113,21 +117,36 @@ export default function MerchantShell({
 
       <div className="flex min-h-0 flex-1">
         {/* Sidebar */}
-        <aside className="hidden w-[221px] shrink-0 flex-col border-r border-pk-border bg-white lg:flex">
-          <div className="border-b border-pk-border px-5 py-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-pk-muted">Ruang Merchant</p>
-            <h2 className="mt-1 text-base font-bold leading-tight text-pk-navy">{merchantName}</h2>
-            <p className="mt-0.5 text-[11px] text-pk-muted">{address}</p>
-            <span
-              className={`mt-3 inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold ${
-                isVerified ? 'bg-pk-cyan text-pk-navy' : 'bg-amber-100 text-amber-800'
-              }`}
+        <aside className={`hidden shrink-0 flex-col border-r border-pk-border bg-white transition-[width] duration-200 lg:flex ${sidebarCollapsed ? 'w-[72px]' : 'w-[221px]'}`}>
+          <div className={`flex items-center border-b border-pk-border py-3 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-end px-3'}`}>
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-label={sidebarCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+              aria-expanded={!sidebarCollapsed}
+              title={sidebarCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+              className="grid h-8 w-8 place-items-center rounded-lg text-pk-muted transition hover:bg-pk-soft hover:text-pk-navy"
             >
-              {isVerified ? 'Usaha terverifikasi!' : 'Menunggu verifikasi'}
-            </span>
+              {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </button>
           </div>
 
-          <nav className="space-y-1 px-3 py-4">
+          {!sidebarCollapsed && (
+            <div className="border-b border-pk-border px-5 py-5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-pk-muted">Ruang Merchant</p>
+              <h2 className="mt-1 text-base font-bold leading-tight text-pk-navy">{merchantName}</h2>
+              <p className="mt-0.5 text-[11px] text-pk-muted">{address}</p>
+              <span
+                className={`mt-3 inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold ${
+                  isVerified ? 'bg-pk-cyan text-pk-navy' : 'bg-amber-100 text-amber-800'
+                }`}
+              >
+                {isVerified ? 'Usaha terverifikasi!' : 'Menunggu verifikasi'}
+              </span>
+            </div>
+          )}
+
+          <nav className={`space-y-1 py-4 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = item.key === active;
@@ -138,15 +157,19 @@ export default function MerchantShell({
                   key={item.key}
                   type="button"
                   onClick={() => navigate(item.to)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold transition ${
+                  title={sidebarCollapsed ? item.key : undefined}
+                  aria-label={sidebarCollapsed ? item.key : undefined}
+                  className={`flex w-full items-center rounded-lg py-2.5 text-left text-[13px] font-semibold transition ${
+                    sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'
+                  } ${
                     isActive
                       ? 'bg-pk-primary text-white shadow-xs'
                       : 'text-pk-muted hover:bg-pk-soft hover:text-pk-navy'
                   }`}
                 >
                   <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-pk-muted'}`} />
-                  <span className="flex-1">{item.key}</span>
-                  {badge > 0 && (
+                  {!sidebarCollapsed && <span className="flex-1">{item.key}</span>}
+                  {!sidebarCollapsed && badge > 0 && (
                     <span className="rounded-full bg-pk-gold px-1.5 py-0.5 text-[10px] font-bold leading-none text-pk-navy">
                       {badge}
                     </span>
@@ -156,7 +179,7 @@ export default function MerchantShell({
             })}
           </nav>
 
-          <div className="px-3 pb-4">
+          {!sidebarCollapsed && <div className="px-3 pb-4">
             <div className="rounded-xl bg-pk-pastel px-4 py-4">
               <Headphones className="h-5 w-5 text-pk-primary" />
               <p className="mt-2 text-[12px] font-bold text-pk-navy">Butuh bantuan?</p>
@@ -176,7 +199,7 @@ export default function MerchantShell({
                 </p>
               </div>
             )}
-          </div>
+          </div>}
         </aside>
 
         {/* Kolom konten + footer */}

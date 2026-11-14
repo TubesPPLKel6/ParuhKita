@@ -1140,6 +1140,15 @@
 .admin-modern .admin-sidebar { display: flex; width: 256px; flex: 0 0 256px; flex-direction: column; padding: 22px 18px; }
 .admin-sidebar-header { display: flex; align-items: center; justify-content: space-between; margin: 0 9px 17px; padding-bottom: 11px; border-bottom: 1px solid #d8e5ee; color: #536b82; font-size: 11px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; }
 .admin-sidebar-header button { display: none; border: 0; color: #536b82; background: transparent; cursor: pointer; }
+.admin-sidebar-header .admin-sidebar-collapse { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 7px; color: #536b82; }
+.admin-sidebar-header .admin-sidebar-collapse:hover { color: #023e8a; background: #eaf5fa; }
+.admin-sidebar-header .admin-sidebar-close { display: none; }
+.admin-modern .admin-sidebar.is-collapsed { width: 72px; flex-basis: 72px; padding: 22px 10px; }
+.admin-modern .admin-sidebar.is-collapsed .admin-sidebar-header { justify-content: center; margin-right: 0; margin-left: 0; }
+.admin-modern .admin-sidebar.is-collapsed .admin-sidebar-header > span,
+.admin-modern .admin-sidebar.is-collapsed .admin-side-link > span,
+.admin-modern .admin-sidebar.is-collapsed .admin-sidebar-footer { display: none; }
+.admin-modern .admin-sidebar.is-collapsed .admin-side-link { justify-content: center; padding-right: 0; padding-left: 0; }
 .admin-modern .admin-sidebar nav { gap: 4px; }
 .admin-modern .admin-side-link { min-height: 42px; gap: 12px; padding: 9px 12px; border-radius: 11px; font-size: 12px; }
 .admin-modern .admin-side-link svg { color: #023e8a; }
@@ -1177,7 +1186,15 @@
   .admin-modern .admin-top-links { display: none; }
   .admin-modern .admin-sidebar { position: fixed; z-index: 60; top: 0; bottom: 0; left: 0; display: flex; width: min(290px, 85vw); transform: translateX(-100%); transition: transform 180ms ease; box-shadow: 20px 0 40px #03045e25; }
   .admin-modern .admin-sidebar.is-open { transform: translateX(0); }
-  .admin-sidebar-header button { display: block; }
+  .admin-modern .admin-sidebar.is-collapsed { width: min(290px, 85vw); flex-basis: auto; padding: 22px 18px; }
+  .admin-modern .admin-sidebar.is-collapsed .admin-sidebar-header { justify-content: space-between; margin-right: 9px; margin-left: 9px; }
+  .admin-modern .admin-sidebar.is-collapsed .admin-sidebar-header > span,
+  .admin-modern .admin-sidebar.is-collapsed .admin-side-link > span,
+  .admin-modern .admin-sidebar.is-collapsed .admin-sidebar-footer { display: initial; }
+  .admin-modern .admin-sidebar.is-collapsed .admin-sidebar-footer { display: block; }
+  .admin-modern .admin-sidebar.is-collapsed .admin-side-link { justify-content: flex-start; padding-right: 12px; padding-left: 12px; }
+  .admin-sidebar-header .admin-sidebar-collapse { display: none; }
+  .admin-sidebar-header .admin-sidebar-close { display: grid; place-items: center; }
   .admin-sidebar-overlay { position: fixed; z-index: 50; inset: 0; border: 0; background: #03045e80; }
   .admin-modern .admin-account-copy { display: none; }
 }

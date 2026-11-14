@@ -278,10 +278,18 @@ export default function CariLowongan() {
                     {/* Top row: Company & Bookmark */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-white border border-[#D8E5EE] flex items-center justify-center font-bold text-xs text-[#023E8A] shadow-2xs">
-                          {(job.merchant_profile?.merchant_name || 'PK').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
-                        </div>
-                        <span className="text-xs font-bold text-[#102C4D]">{job.merchant_profile?.merchant_name || 'Merchant'}</span>
+                        <Link
+                          to={job.merchant_profile?.id ? `/perusahaan/${job.merchant_profile.id}` : '/lowongan'}
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                          className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#00B4D8]"
+                          aria-label={`Lihat profil ${job.merchant_profile?.merchant_name || 'merchant'}`}
+                        >
+                          <div className="w-8 h-8 rounded-xl bg-white border border-[#D8E5EE] flex items-center justify-center font-bold text-xs text-[#023E8A] shadow-2xs">
+                            {(job.merchant_profile?.merchant_name || 'PK').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <span className="text-xs font-bold text-[#102C4D] hover:text-[#023E8A]">{job.merchant_profile?.merchant_name || 'Merchant'}</span>
+                        </Link>
                       </div>
 
                       <button 

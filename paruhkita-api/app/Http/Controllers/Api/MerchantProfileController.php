@@ -37,6 +37,7 @@ class MerchantProfileController extends Controller
                 'id',
                 'merchant_name',
                 'category',
+                'is_verified',
                 'description',
                 'phone',
                 'address',

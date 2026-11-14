@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
+        $middleware->alias([
+            'account.active' => \App\Http\Middleware\EnsureAccountIsActive::class,
+            'role' => \App\Http\Middleware\EnsureRole::class,
+        ]);
 
         // Jangan pernah redirect ke web login untuk request API
         $middleware->redirectGuestsTo(fn () => null);
