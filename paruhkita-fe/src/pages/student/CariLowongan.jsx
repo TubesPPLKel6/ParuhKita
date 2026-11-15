@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { 
   Calendar, 
@@ -12,13 +12,20 @@ import {
 } from 'lucide-react';
 
 export default function CariLowongan() {
-  const [bookmarked, setBookmarked] = useState([]);
+  const [bookmarked, setBookmarked] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('pk_bookmarked_jobs') || '[]').map(Number);
+    } catch {
+      return [];
+    }
+  });
   const [filterJadwal, setFilterJadwal] = useState(true);
   const [jobs, setJobs] = useState([]);
   const [surveySummaries, setSurveySummaries] = useState({});
   const [surveySummaryError, setSurveySummaryError] = useState('');
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,12 +62,22 @@ export default function CariLowongan() {
   }, [jobs]);
 
   const toggleBookmark = (id) => {
-    if (bookmarked.includes(id)) {
-      setBookmarked(bookmarked.filter(b => b !== id));
-    } else {
-      setBookmarked([...bookmarked, id]);
-    }
+    const next = bookmarked.includes(id)
+      ? bookmarked.filter((bookmarkId) => bookmarkId !== id)
+      : [...bookmarked, id];
+    setBookmarked(next);
+    localStorage.setItem('pk_bookmarked_jobs', JSON.stringify(next));
+    window.dispatchEvent(new Event('pk-bookmarks-changed'));
   };
+
+  const query = searchParams.get('q')?.trim().toLowerCase() || '';
+  const visibleJobs = useMemo(() => jobs.filter((job) => {
+    if (!query) return true;
+    const merchant = job.merchant_profile || {};
+    return `${job.title || ''} ${job.category || ''} ${job.subcategory || ''} ${job.location || ''} ${merchant.merchant_name || ''} ${merchant.address || ''}`
+      .toLowerCase()
+      .includes(query);
+  }), [jobs, query]);
 
   return (
     <div className="min-h-screen bg-[#F6F9FC] pb-16">
@@ -234,7 +251,7 @@ export default function CariLowongan() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-base font-bold text-[#03045E]">Peluang yang pas untukmu</h2>
-                <p className="text-xs text-[#536B82]">{jobs.length} lowongan aktif dari merchant terverifikasi</p>
+                <p className="text-xs text-[#536B82]">{visibleJobs.length} lowongan aktif dari merchant terverifikasi{query ? ` untuk "${searchParams.get('q')}"` : ''}</p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -248,7 +265,7 @@ export default function CariLowongan() {
             {errorMessage && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">{errorMessage}</p>}
             {surveySummaryError && <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800">{surveySummaryError} Daftar lowongan tetap tersedia.</p>}
             {loading && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">Memuat lowongan...</div>}
-            {!loading && jobs.length === 0 && !errorMessage && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">Belum ada lowongan aktif saat ini.</div>}
+            {!loading && visibleJobs.length === 0 && !errorMessage && <div className="rounded-2xl border border-[#D8E5EE] bg-white p-8 text-center text-sm text-[#536B82]">{query ? 'Tidak ada lowongan yang sesuai dengan pencarian.' : 'Belum ada lowongan aktif saat ini.'}</div>}
 
             {/* Active filter pills */}
             <div className="flex flex-wrap gap-2 text-xs">
@@ -265,7 +282,7 @@ export default function CariLowongan() {
 
             {/* Cards 3x2 Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {jobs.map((job) => (
+              {visibleJobs.map((job) => (
                 <div 
                   key={job.id} 
                   className="bg-[#CAF0F8]/40 border border-[#00B4D8]/30 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition"

@@ -22,6 +22,8 @@ import Dashboard from './pages/student/Dashboard';
 import Profile from './pages/student/Profile';
 import CvList from './pages/student/CvList';
 import PortfolioList from './pages/student/PortfolioList';
+import SavedJobs from './pages/student/SavedJobs';
+import Notifikasi from './pages/student/Notifikasi';
 
 // Pages Merchant 
 import MerchantDashboard from './pages/merchant/MerchantDashboard';
@@ -284,6 +286,26 @@ export default function App() {
               <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <CariLowongan />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lowongan/tersimpan"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <SavedJobs />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifikasi"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <Notifikasi />
                 </AppLayout>
               </ProtectedRoute>
             }
