@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Bookmark, ChevronLeft, ChevronRight, ClipboardList, GraduationCap, LogOut, Search, Users, X } from 'lucide-react';
+import { Bell, Bookmark, ChevronLeft, ChevronRight, ClipboardList, GraduationCap, LogOut, ShieldAlert, Search, Users, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Footer from '../Footer';
 import useSidebarCollapsed from '../../hooks/useSidebarCollapsed';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { key: 'Kesiapan karier', icon: GraduationCap, to: '/kesiapan-karier' },
   { key: 'Lamaran saya', icon: ClipboardList, to: '/lamaran' },
   { key: 'Komunitas', icon: Users, to: '/komunitas' },
+  { key: 'Lapor masalah', icon: ShieldAlert, to: '/lapor-masalah' },
 ];
 
 function initialsOf(name) {

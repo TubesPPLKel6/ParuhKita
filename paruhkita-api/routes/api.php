@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ApplicationFeedbackController;
 use App\Http\Controllers\Api\WorkplaceSurveyController;
 use App\Http\Controllers\Api\StudentVerificationController;
 use App\Http\Controllers\Api\AdminVerificationController;
+use App\Http\Controllers\Api\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -81,6 +82,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'account.active', 'role'])->gro
     Route::put('/merchant/applications/{jobApplication}/feedback/categories/{category}', [ApplicationFeedbackController::class, 'updateCategory']);
     Route::delete('/merchant/applications/{jobApplication}/feedback/categories/{category}', [ApplicationFeedbackController::class, 'destroyCategory']);
     Route::get('/merchant/applications/{jobApplication}/documents/{documentId}', [JobController::class, 'merchantDownloadDocument']);
+
+        // --- PELAPORAN MASALAH & PELANGGARAN (TUB-9) ---
+    Route::get('/student/reports/options', [ReportController::class, 'formOptions']);
+    Route::get('/student/reports', [ReportController::class, 'index']);
+    Route::post('/student/reports', [ReportController::class, 'store']);
+    Route::get('/admin/reports', [ReportController::class, 'adminIndex']);
+
 
     // --- JADWAL SELEKSI & PENILAIAN KANDIDAT ---
     Route::get('/merchant/schedules', [MerchantScheduleController::class, 'index']);

@@ -24,6 +24,8 @@ import CvList from './pages/student/CvList';
 import PortfolioList from './pages/student/PortfolioList';
 import SavedJobs from './pages/student/SavedJobs';
 import Notifikasi from './pages/student/Notifikasi';
+import LaporMasalah from './pages/student/LaporMasalah';
+
 
 // Pages Merchant 
 import MerchantDashboard from './pages/merchant/MerchantDashboard';
@@ -95,28 +97,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
-                 <Route
-         path="/merchant/jobs/:jobId/applicants"
-         element={
-           <ProtectedRoute allowedRoles={['merchant']}>
-             <MerchantLayout>
-               <KelolaPelamarLowongan />
-             </MerchantLayout>
-           </ProtectedRoute>
-         }
-       />
-       <Route
-         path="/merchant/applications/:applicationId"
-         element={
-           <ProtectedRoute allowedRoles={['merchant']}>
-             <MerchantLayout>
-               <DetailPelamar />
-             </MerchantLayout>
-           </ProtectedRoute>
-         }
-       />
-
 
           <Route
             path="/merchant/candidates"
@@ -360,6 +340,19 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/lapor-masalah"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <LaporMasalah />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+
           <Route
             path="/lamaran"
             element={
