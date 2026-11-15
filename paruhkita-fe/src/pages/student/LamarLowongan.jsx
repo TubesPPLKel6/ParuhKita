@@ -58,6 +58,7 @@ export default function LamarLowongan() {
 
   const merchant = job?.merchant_profile || {};
   const student = profile?.profile || {};
+  const isStudentVerified = student.is_verified && student.verification_status === 'approved';
   const missingRequiredDocuments = useMemo(
     () => requiredDocuments.filter((document) => document.required && !documents[document.key]),
     [documents],
@@ -103,6 +104,30 @@ export default function LamarLowongan() {
 
   if (loading) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-[#536B82]">Menyiapkan formulir...</div>;
   if (!job) return <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-rose-700">{errorMessage}</div>;
+  if (!isStudentVerified) return (
+    <div className="mx-auto max-w-3xl px-4 py-10">
+      <section className="rounded-xl border border-amber-200 bg-white p-6 sm:p-8">
+        <div className="flex items-start gap-3">
+          <LockKeyhole className="mt-0.5 shrink-0 text-amber-600" size={22} />
+          <div>
+            <h1 className="text-lg font-extrabold text-[#03045E]">Verifikasi KTM diperlukan</h1>
+            <p className="mt-2 text-sm leading-6 text-[#536B82]">
+              {student.verification_status === 'pending'
+                ? 'Dokumen KTM kamu sedang ditinjau admin. Kamu dapat melamar setelah verifikasi disetujui.'
+                : student.verification_status === 'rejected' || student.verification_status === 'revision_required'
+                  ? 'Dokumen KTM perlu diperbarui sebelum kamu dapat mengajukan lamaran.'
+                  : 'Ajukan dokumen KTM untuk diverifikasi admin sebelum mengajukan lamaran.'}
+            </p>
+            {student.verification_note && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">{student.verification_note}</p>}
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link to="/kesiapan-karier" className="rounded-lg bg-[#F59E0B] px-4 py-2.5 text-xs font-bold text-[#03045E]">Verifikasi KTM</Link>
+              <Link to={`/lowongan/${job.id}`} className="rounded-lg border border-[#D8E5EE] px-4 py-2.5 text-xs font-bold text-[#03045E]">Kembali ke Lowongan</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#F6F9FC]">

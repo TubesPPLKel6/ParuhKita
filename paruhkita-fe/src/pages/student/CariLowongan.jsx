@@ -295,10 +295,18 @@ export default function CariLowongan() {
                     {/* Top row: Company & Bookmark */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-white border border-[#D8E5EE] flex items-center justify-center font-bold text-xs text-[#023E8A] shadow-2xs">
-                          {(job.merchant_profile?.merchant_name || 'PK').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
-                        </div>
-                        <span className="text-xs font-bold text-[#102C4D]">{job.merchant_profile?.merchant_name || 'Merchant'}</span>
+                        <Link
+                          to={job.merchant_profile?.id ? `/perusahaan/${job.merchant_profile.id}` : '/lowongan'}
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                          className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#00B4D8]"
+                          aria-label={`Lihat profil ${job.merchant_profile?.merchant_name || 'merchant'}`}
+                        >
+                          <div className="w-8 h-8 rounded-xl bg-white border border-[#D8E5EE] flex items-center justify-center font-bold text-xs text-[#023E8A] shadow-2xs">
+                            {(job.merchant_profile?.merchant_name || 'PK').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <span className="text-xs font-bold text-[#102C4D] hover:text-[#023E8A]">{job.merchant_profile?.merchant_name || 'Merchant'}</span>
+                        </Link>
                       </div>
 
                       <button 
@@ -312,7 +320,7 @@ export default function CariLowongan() {
 
                     {/* Job Title */}
                     <h3 className="text-sm font-extrabold text-[#03045E] mt-3">{job.title}</h3>
-                    <p className="text-[11px] text-[#536B82] mt-0.5">{job.merchant_profile?.address || 'Lokasi tidak dicantumkan'}</p>
+                    <p className="text-[11px] text-[#536B82] mt-0.5">{job.location || job.merchant_profile?.address || 'Lokasi tidak dicantumkan'}</p>
                     <p className="text-[10px] text-[#536B82] mt-1">{[job.category, job.subcategory].filter(Boolean).join(' · ')}</p>
 
                     {/* Wage & Positions Pill */}
@@ -320,7 +328,7 @@ export default function CariLowongan() {
                       <span className="px-2.5 py-1 bg-[#03045E] text-white text-xs font-bold rounded-lg">
                         {job.wage}
                       </span>
-                      <span className="text-[11px] text-[#536B82] font-semibold">{job.quota}</span>
+                      <span className="text-[11px] text-[#536B82] font-semibold">{job.remaining_quota ?? job.quota} posisi tersedia</span>
                     </div>
 
                     {/* Schedule Details */}
@@ -331,14 +339,14 @@ export default function CariLowongan() {
                       </p>
                       <p className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-[#023E8A]" />
-                        <span>{job.description || 'Informasi pekerjaan dari merchant'}</span>
+                        <span>{job.application_deadline ? `Daftar sampai ${new Date(job.application_deadline).toLocaleDateString('id-ID')}` : (job.description || 'Informasi pekerjaan dari merchant')}</span>
                       </p>
                     </div>
 
                     {/* Match Badge */}
                     <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-[#023E8A]">
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#00B4D8]" />
-                      <span>{job.is_applied ? 'Kamu sudah melamar' : 'Dari merchant terverifikasi'}</span>
+                      <span>{job.is_applied ? 'Kamu sudah melamar' : job.remaining_quota === 0 ? 'Kuota sudah penuh' : 'Dari merchant terverifikasi'}</span>
                     </div>
 
                     {(() => {
@@ -357,7 +365,7 @@ export default function CariLowongan() {
                     onClick={(event) => { event.stopPropagation(); navigate(`/lowongan/${job.id}`); }}
                     className="mt-4 w-full py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-white font-bold text-xs rounded-xl shadow-xs transition disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {job.is_applied ? 'Lihat Lamaran' : 'Lamar Sekarang'}
+                    {job.is_applied ? 'Lihat Lamaran' : job.remaining_quota === 0 ? 'Kuota Penuh' : 'Lamar Sekarang'}
                   </button>
                 </div>
               ))}

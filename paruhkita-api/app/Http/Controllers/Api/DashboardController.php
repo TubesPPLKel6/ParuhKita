@@ -80,8 +80,6 @@ class DashboardController extends Controller
      */
     public function adminSummary(Request $request)
     {
-        abort_unless($request->user()->role === 'admin', 403);
-
         $period = $request->query('period', 'month');
         $start = match ($period) {
             'week' => now()->subWeek(),

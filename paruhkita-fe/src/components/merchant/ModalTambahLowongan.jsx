@@ -2,16 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { X, Briefcase, PlusCircle } from 'lucide-react';
 import api from '../../api/axios';
 
+const WORK_DAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+const DAY_ALIASES = { Senin: 'Sen', Selasa: 'Sel', Rabu: 'Rab', Kamis: 'Kam', Jumat: 'Jum', Sabtu: 'Sab', Minggu: 'Min' };
+
+function parseSchedule(schedule) {
+  const [daysPart = '', timesPart = ''] = (schedule || '').split(' · ');
+  const [jamMulai = '16:00', jamSelesai = '20:00'] = timesPart.split(/\s*[-–]\s*/);
+  return {
+    hariKerja: daysPart.split(',').map((day) => DAY_ALIASES[day.trim()] || day.trim()).filter((day) => WORK_DAYS.includes(day)),
+    jamMulai: /^\d{2}[:.]\d{2}$/.test(jamMulai) ? jamMulai.replace('.', ':') : '16:00',
+    jamSelesai: /^\d{2}[:.]\d{2}$/.test(jamSelesai) ? jamSelesai.replace('.', ':') : '20:00',
+  };
+}
+
 export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan, job }) {
+  const schedule = parseSchedule(job?.schedule);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [categoryError, setCategoryError] = useState('');
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState(() => ({
     judul: job?.title || '',
+    lokasi: job?.location || '',
     kategori: job?.category || '',
     subkategori: job?.subcategory || '',
-    jamKerja: job?.schedule || 'Sen - Sab, 15:00 - 20:00',
+    hariKerja: schedule.hariKerja,
+    jamMulai: schedule.jamMulai,
+    jamSelesai: schedule.jamSelesai,
     upah: job?.wage || 'Rp18.000 / jam',
     kuota: job?.quota || '2 orang',
     deskripsi: job?.description || '',
@@ -64,16 +81,19 @@ export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan,
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.judul.trim()) return alert('Mohon isi judul lowongan.');
+    if (formData.hariKerja.length === 0) return alert('Pilih minimal satu hari kerja.');
+    if (formData.jamMulai >= formData.jamSelesai) return alert('Jam selesai harus lebih akhir dari jam mulai.');
 
     setSaving(true);
     setCategoryError('');
     try {
       await onTambahLowongan({
         title: formData.judul.trim(),
+        location: formData.lokasi.trim(),
         category: formData.kategori,
         subcategory: formData.subkategori || null,
         quota: formData.kuota.trim(),
-        schedule: formData.jamKerja.trim(),
+        schedule: `${formData.hariKerja.join(', ')} · ${formData.jamMulai}–${formData.jamSelesai}`,
         wage: formData.upah.trim(),
         description: formData.deskripsi.trim() || null,
         responsibilities: formData.responsibilities.trim() || null,
@@ -120,6 +140,18 @@ export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan,
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
+              <label className="block text-xs font-semibold text-[#03045E] mb-1">Lokasi kerja *</label>
+              <input
+                type="text"
+                required
+                name="lokasi"
+                placeholder="Contoh: Gejayan, Yogyakarta"
+                value={formData.lokasi}
+                onChange={handleChange}
+                className="w-full bg-[#F6F9FC] border border-[#D8E5EE] rounded-xl px-3.5 py-2.5 text-xs text-[#03045E] focus:outline-none focus:border-[#00B4D8]"
+              />
+            </div>
+            <div>
               <label className="block text-xs font-semibold text-[#03045E] mb-1">Kategori Pekerjaan *</label>
               <select
                 required
@@ -153,9 +185,11 @@ export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan,
             <div>
               <label className="block text-xs font-semibold text-[#03045E] mb-1">Jumlah Kuota Pekerja *</label>
               <input 
-                type="text"
+                type="number"
+                min="1"
+                required
                 name="kuota"
-                placeholder="Contoh: 2 orang"
+                placeholder="Contoh: 2"
                 value={formData.kuota}
                 onChange={handleChange}
                 className="w-full bg-[#F6F9FC] border border-[#D8E5EE] rounded-xl px-3.5 py-2.5 text-xs text-[#03045E] focus:outline-none focus:border-[#00B4D8]"
@@ -163,30 +197,69 @@ export default function ModalTambahLowongan({ isOpen, onClose, onTambahLowongan,
             </div>
           </div>
 
+          <div>
+            <label className="block text-xs font-semibold text-[#03045E] mb-1">Hari kerja *</label>
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+              {WORK_DAYS.map((day) => {
+                const selected = formData.hariKerja.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => setFormData((current) => ({
+                      ...current,
+                      hariKerja: selected
+                        ? current.hariKerja.filter((selectedDay) => selectedDay !== day)
+                        : [...current.hariKerja, day],
+                    }))}
+                    className={`rounded-lg border px-2 py-2 text-[10px] font-bold transition ${
+                      selected ? 'border-[#00B4D8] bg-[#CAF0F8] text-[#023E8A]' : 'border-[#D8E5EE] bg-white text-[#536B82] hover:border-[#00B4D8]'
+                    }`}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-1 text-[10px] text-[#536B82]">Pilih satu atau beberapa hari sesuai kebutuhan shift.</p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[#03045E] mb-1">Jadwal & Jam Kerja *</label>
+              <label className="block text-xs font-semibold text-[#03045E] mb-1">Jam mulai *</label>
               <input 
-                type="text"
-                name="jamKerja"
-                placeholder="Sen - Sab, 15:00 - 20:00"
-                value={formData.jamKerja}
+                type="time"
+                name="jamMulai"
+                required
+                value={formData.jamMulai}
                 onChange={handleChange}
                 className="w-full bg-[#F6F9FC] border border-[#D8E5EE] rounded-xl px-3.5 py-2.5 text-xs text-[#03045E] focus:outline-none focus:border-[#00B4D8]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#03045E] mb-1">Estimasi Upah / Gaji *</label>
-              <input 
-                type="text"
-                name="upah"
-                placeholder="Rp18.000 / jam"
-                value={formData.upah}
+              <label className="block text-xs font-semibold text-[#03045E] mb-1">Jam selesai *</label>
+              <input
+                type="time"
+                name="jamSelesai"
+                required
+                value={formData.jamSelesai}
                 onChange={handleChange}
                 className="w-full bg-[#F6F9FC] border border-[#D8E5EE] rounded-xl px-3.5 py-2.5 text-xs text-[#03045E] focus:outline-none focus:border-[#00B4D8]"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#03045E] mb-1">Estimasi Upah / Gaji *</label>
+            <input
+              type="text"
+              name="upah"
+              placeholder="Rp18.000 / jam"
+              value={formData.upah}
+              onChange={handleChange}
+              className="w-full bg-[#F6F9FC] border border-[#D8E5EE] rounded-xl px-3.5 py-2.5 text-xs text-[#03045E] focus:outline-none focus:border-[#00B4D8]"
+            />
           </div>
 
           <div>
