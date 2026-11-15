@@ -87,7 +87,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'account.active', 'role'])->gro
     Route::get('/student/reports/options', [ReportController::class, 'formOptions']);
     Route::get('/student/reports', [ReportController::class, 'index']);
     Route::post('/student/reports', [ReportController::class, 'store']);
+    Route::put('/student/reports/{recruitmentReport}', [ReportController::class, 'update']);
+    Route::delete('/student/reports/{recruitmentReport}', [ReportController::class, 'destroy']);
+
     Route::get('/admin/reports', [ReportController::class, 'adminIndex']);
+    Route::patch('/admin/reports/{recruitmentReport}', [ReportController::class, 'adminFollowUp']);
+
+    Route::get('/merchant/notifications', [ReportController::class, 'merchantNotifications']);
+    Route::patch('/merchant/notifications/{merchantNotification}/read', [ReportController::class, 'markNotificationRead']);
 
 
     // --- JADWAL SELEKSI & PENILAIAN KANDIDAT ---

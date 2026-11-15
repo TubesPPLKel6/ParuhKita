@@ -58,11 +58,20 @@ export default function MerchantDashboard() {
   const [lowonganList, setLowonganList] = useState([]);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState('');
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+
 
   useEffect(() => {
     if (!isVerified) return undefined;
 
     let active = true;
+
+    api.get('/v1/merchant/notifications')
+    .then(({ data }) => { if (active) setNotifications(data.data || []); })
+    .catch(() => {});
+
+
     api.get('/v1/merchant/jobs')
       .then(({ data }) => {
         if (!active) return;
@@ -215,9 +224,43 @@ export default function MerchantDashboard() {
         </nav>
 
         <div className="flex items-center gap-4 z-10">
-          <button className="text-slate-300 hover:text-white transition relative">
-            <Bell className="w-5 h-5" />
-          </button>
+                         <div className="relative">
+            <button
+              type="button"
+              onClick={() => setNotifOpen((prev) => !prev)}
+              className="text-slate-300 hover:text-white transition relative p-1"
+              aria-label="Notifikasi Merchant"
+            >
+              <Bell className="w-5 h-5" />
+              {notifications.length > 0 && (
+                <span className="w-2 h-2 rounded-full bg-amber-400 absolute top-1 right-1" />
+              )}
+            </button>
+            {notifOpen && (
+              <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white text-[#03045E] shadow-lg border border-[#D8E5EE] p-4 z-50 space-y-2.5">
+                <p className="text-xs font-extrabold border-b border-[#D8E5EE] pb-2">
+                  Notifikasi &amp; Laporan Admin ({notifications.length})
+                </p>
+                {notifications.length === 0 ? (
+                  <p className="text-[11px] text-[#536B82]">Belum ada notifikasi dari Admin.</p>
+                ) : (
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {notifications.map((notif) => (
+                      <div key={notif.id} className="rounded-xl bg-[#F6F9FC] border border-[#D8E5EE] p-2.5 space-y-1">
+                        <p className="text-[11px] font-extrabold text-[#023E8A]">{notif.title}</p>
+                        <p className="text-[11px] text-[#536B82]">{notif.message}</p>
+                        <p className="text-[10px] text-slate-400">
+                          {new Date(notif.created_at).toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          
           <div 
             onClick={() => navigate('/merchant/profile')}
             className="flex items-center gap-2.5 cursor-pointer bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-2xl transition"

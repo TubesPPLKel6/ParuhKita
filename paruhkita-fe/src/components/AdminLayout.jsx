@@ -9,8 +9,7 @@ const navigation = [
   { to: '/admin/users', label: 'Pengguna', icon: Users },
   { to: '/admin/verifikasi-dokumen', label: 'Verifikasi Dokumen', icon: ShieldCheck, badge: 'pending' },
   { to: '/admin/reference-data', label: 'Data Master', icon: School },
-  { to: '/admin/merchant-verifications', label: 'Moderasi Konten', icon: MessageCircle },
-  { to: '/admin/merchant-verifications', label: 'Pengaduan', icon: Bell, badge: '3', active: false },
+  { to: '/admin/reports', label: 'Pengaduan', icon: Bell, badge: '!' },
   { to: '/admin/dashboard', label: 'Laporan & Audit', icon: BookOpen, active: false },
 ];
 

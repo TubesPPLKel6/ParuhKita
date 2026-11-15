@@ -48,6 +48,7 @@ import AdminCampusForm from './pages/admin/AdminCampusForm';
 import AdminMasterForm from './pages/admin/AdminMasterForm';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminLayout from './components/AdminLayout';
+import AdminPengaduan from './pages/admin/AdminPengaduan';
 
 // Layout Standar Mahasiswa //
 function AppLayout({ children }) {
@@ -243,6 +244,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/admin/reports"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout><AdminPengaduan /></AdminLayout>
+            </ProtectedRoute>
+           }
+          />
+
 
           {/* ================= APP ENTRY ================= */}
           <Route

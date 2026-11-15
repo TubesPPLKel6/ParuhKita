@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
+  import React, { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import {
   AlertTriangle,
   CheckCircle2,
   Clock,
   FileText,
+  Pencil,
   Send,
   ShieldAlert,
+  Trash2,
+  X,
 } from 'lucide-react';
 
 const REPORT_CATEGORIES = [
@@ -30,6 +33,7 @@ export default function LaporMasalah() {
   const [jobs, setJobs] = useState([]);
   const [reports, setReports] = useState([]);
 
+  const [editingReportId, setEditingReportId] = useState(null);
   const [stage, setStage] = useState('recruitment');
   const [category, setCategory] = useState(REPORT_CATEGORIES[0]);
   const [merchantProfileId, setMerchantProfileId] = useState('');
@@ -68,6 +72,47 @@ export default function LaporMasalah() {
     loadData();
   }, []);
 
+  const resetForm = () => {
+    setEditingReportId(null);
+    setStage('recruitment');
+    setCategory(REPORT_CATEGORIES[0]);
+    setMerchantProfileId('');
+    setJobPostId('');
+    setTitle('');
+    setDescription('');
+    setEvidence(null);
+  };
+
+  const handleStartEdit = (rep) => {
+    setErrorMessage('');
+    setSuccessMessage('');
+    setEditingReportId(rep.id);
+    setStage(rep.stage || 'recruitment');
+    setCategory(rep.category || REPORT_CATEGORIES[0]);
+    setMerchantProfileId(rep.merchant_profile_id ? String(rep.merchant_profile_id) : '');
+    setJobPostId(rep.job_post_id ? String(rep.job_post_id) : '');
+    setTitle(rep.title || '');
+    setDescription(rep.description || '');
+    setEvidence(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (rep) => {
+    if (!window.confirm(`Hapus laporan "${rep.title}"?`)) return;
+    setErrorMessage('');
+    setSuccessMessage('');
+    try {
+      const { data } = await api.delete(`/v1/student/reports/${rep.id}`);
+      if (editingReportId === rep.id) resetForm();
+      setSuccessMessage(data.message || 'Laporan berhasil dihapus.');
+      loadData();
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message || 'Gagal menghapus laporan.'
+      );
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
@@ -93,29 +138,37 @@ export default function LaporMasalah() {
       if (jobPostId) formData.append('job_post_id', jobPostId);
       if (evidence) formData.append('evidence', evidence);
 
-      const { data } = await api.post('/v1/student/reports', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      let response;
+      if (editingReportId) {
+        formData.append('_method', 'PUT');
+        response = await api.post(`/v1/student/reports/${editingReportId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        response = await api.post('/v1/student/reports', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
 
-      setSuccessMessage(data.message || 'Laporan masalah berhasil dikirim.');
-      setTitle('');
-      setDescription('');
-      setMerchantProfileId('');
-      setJobPostId('');
-      setEvidence(null);
+      setSuccessMessage(
+        response.data?.message ||
+          (editingReportId ? 'Laporan berhasil diperbarui.' : 'Laporan masalah berhasil dikirim.')
+      );
+      resetForm();
       loadData();
     } catch (error) {
       const validationErrors = error.response?.data?.errors;
       const firstError = validationErrors
-        ? Object.values(validationErrors).flat()
+        ? Object.values(validationErrors).flat()[0]
         : null;
       setErrorMessage(
-        firstError || error.response?.data?.message || 'Gagal mengirim laporan.'
+        firstError || error.response?.data?.message || 'Gagal menyimpan laporan.'
       );
     } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -134,12 +187,24 @@ export default function LaporMasalah() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Form Pengajuan Laporan */}
+        {/* Form Pengajuan / Edit Laporan */}
         <section className="lg:col-span-2 bg-white rounded-2xl border border-[#D8E5EE] p-6 space-y-5">
-          <h2 className="text-base font-extrabold text-[#03045E] flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
-            Formulir Pengaduan
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-base font-extrabold text-[#03045E] flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              <span>{editingReportId ? 'Ubah Laporan Pengaduan' : 'Formulir Pengaduan'}</span>
+            </h2>
+            {editingReportId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="inline-flex items-center gap-1 rounded-lg border border-[#D8E5EE] px-2.5 py-1 text-xs font-bold text-[#536B82] hover:text-[#03045E]"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Batal Edit</span>
+              </button>
+            )}
+          </div>
 
           {errorMessage && (
             <div role="alert" className="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs text-rose-700 font-medium">
@@ -272,7 +337,13 @@ export default function LaporMasalah() {
               className="inline-flex items-center gap-2 rounded-xl bg-[#023E8A] hover:bg-[#03045E] disabled:opacity-60 text-white px-5 py-2.5 text-xs font-bold transition shadow-xs"
             >
               <Send className="w-4 h-4" />
-              <span>{submitting ? 'Mengirim Laporan...' : 'Kirim Laporan'}</span>
+              <span>
+                {submitting
+                  ? 'Menyimpan...'
+                  : editingReportId
+                    ? 'Simpan Perubahan'
+                    : 'Kirim Laporan'}
+              </span>
             </button>
           </form>
         </section>
@@ -297,6 +368,7 @@ export default function LaporMasalah() {
             <div className="space-y-3">
               {reports.map((rep) => {
                 const badge = STATUS_BADGE[rep.status] || STATUS_BADGE.submitted;
+                const canModify = rep.status === 'submitted';
                 return (
                   <div
                     key={rep.id}
@@ -314,6 +386,34 @@ export default function LaporMasalah() {
                     <p className="text-xs font-extrabold text-[#03045E]">{rep.title}</p>
                     <p className="text-[11px] font-semibold text-[#0077B6]">{rep.category}</p>
                     <p className="text-[11px] text-[#536B82] line-clamp-2">{rep.description}</p>
+
+                    {rep.admin_note && (
+                      <div className="rounded-lg bg-white border border-[#D8E5EE] p-2 text-[11px] text-[#03045E]">
+                        <span className="font-bold text-[#023E8A]">Tindak Lanjut Admin: </span>
+                        {rep.admin_note}
+                      </div>
+                    )}
+
+                    {canModify && (
+                      <div className="pt-2 border-t border-[#D8E5EE] flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(rep)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-white border border-[#D8E5EE] hover:border-[#023E8A] px-2.5 py-1 text-[11px] font-bold text-[#023E8A] transition"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(rep)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-rose-50 border border-rose-200 hover:bg-rose-100 px-2.5 py-1 text-[11px] font-bold text-rose-700 transition"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Hapus</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
