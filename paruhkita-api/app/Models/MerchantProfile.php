@@ -19,6 +19,8 @@ class MerchantProfile extends Model
         'verification_status',
         'verification_submitted_at',
         'verification_note',
+        'verified_at',
+        'verified_by_user_id',
     ];
 
     protected function casts(): array
@@ -26,6 +28,7 @@ class MerchantProfile extends Model
         return [
             'is_verified' => 'boolean',
             'verification_submitted_at' => 'datetime',
+            'verified_at' => 'datetime',
         ];
     }
 

@@ -20,7 +20,7 @@ class AuthController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role'     => 'sometimes|in:mahasiswa,merchant,admin',
+            'role'     => 'sometimes|in:mahasiswa,merchant',
             'phone'    => 'nullable|string',
         ]);
 
@@ -70,6 +70,13 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'email' => ['Email atau kata sandi yang Anda masukkan salah.'],
             ]);
+        }
+
+        if ($user->account_status !== 'active') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Akun ini sedang dinonaktifkan. Hubungi admin untuk bantuan.',
+            ], 403);
         }
 
         $user->load('merchantProfile');

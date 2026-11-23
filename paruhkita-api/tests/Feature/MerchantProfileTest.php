@@ -139,6 +139,7 @@ class MerchantProfileTest extends TestCase
             'description' => 'Profil yang dapat dibaca mahasiswa.',
             'phone' => '08123456789',
             'address' => 'Yogyakarta',
+            'is_verified' => true,
         ]);
         $profile->facilities()->create([
             'name' => 'Kantin',
@@ -148,6 +149,7 @@ class MerchantProfileTest extends TestCase
         $this->getJson("/api/v1/companies/{$profile->id}")
             ->assertOk()
             ->assertJsonPath('data.merchant_name', 'Toko Publik')
+            ->assertJsonPath('data.is_verified', true)
             ->assertJsonPath('data.email', $merchant->email)
             ->assertJsonPath('data.facilities.0.name', 'Kantin');
     }

@@ -2,47 +2,58 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import StudentShell from './components/student/StudentShell';
 
 
 // Pages Mahasiswa 
-import Login from './pages/Login';
-import Register from './pages/Register';
-import KesiapanKarier from './pages/KesiapanKarier';
-import CariLowongan from './pages/CariLowongan';
-import Komunitas from './pages/Komunitas';
-import LamaranSaya from './pages/LamaranSaya';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import CvList from './pages/CvList';
-import PortfolioList from './pages/PortfolioList';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import KesiapanKarier from './pages/student/KesiapanKarier';
+import CariLowongan from './pages/student/CariLowongan';
+import DetailLowongan from './pages/student/DetailLowongan';
+import LamarLowongan from './pages/student/LamarLowongan';
+import Komunitas from './pages/student/Komunitas';
+import SurveiKelayakan from './pages/student/SurveiKelayakan';
+import LamaranSaya from './pages/student/LamaranSaya';
+import DetailStatusLamaran from './pages/student/DetailStatusLamaran';
+import DetailLamaranAnda from './pages/DetailLamaranAnda';
+import DokumenMasukan from './pages/DokumenMasukan';
+import Dashboard from './pages/student/Dashboard';
+import Profile from './pages/student/Profile';
+import CvList from './pages/student/CvList';
+import PortfolioList from './pages/student/PortfolioList';
+import SavedJobs from './pages/student/SavedJobs';
+import Notifikasi from './pages/student/Notifikasi';
+import LaporMasalah from './pages/student/LaporMasalah';
+
 
 // Pages Merchant 
-import MerchantDashboard from './pages/MerchantDashboard';
-import MerchantProfile from './pages/MerchantProfile';
-import MerchantSettings from './pages/MerchantSettings';
-import AdminMerchantVerifications from './pages/AdminMerchantVerifications';
-import PublicMerchantProfile from './pages/PublicMerchantProfile';
-import AdminReferenceData from './pages/AdminReferenceData';
-import AdminCampusForm from './pages/AdminCampusForm';
-import AdminMasterForm from './pages/AdminMasterForm';
+import MerchantDashboard from './pages/merchant/MerchantDashboard';
+import MerchantJobs from './pages/merchant/MerchantJobs';
+import MerchantJadwal from './pages/MerchantJadwal';
+import MerchantFeedback from './pages/MerchantFeedback';
+import MerchantFeedbackSuccess from './pages/MerchantFeedbackSuccess';
+import MerchantCandidates from './pages/MerchantCandidates';
+import KelolaPelamarLowongan from './pages/merchant/KelolaPelamarLowongan';
+import DetailPelamar from './pages/merchant/DetailPelamar';
+import DashboardSurveiMerchant from './pages/merchant/DashboardSurveiMerchant';
+import MerchantProfile from './pages/merchant/MerchantProfile';
+import MerchantSettings from './pages/merchant/MerchantSettings';
+import AdminMerchantVerifications from './pages/admin/AdminMerchantVerifications';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminVerifications from './pages/admin/AdminVerifications';
+import PublicMerchantProfile from './pages/shared/PublicMerchantProfile';
+import AdminReferenceData from './pages/admin/AdminReferenceData';
+import AdminCampusForm from './pages/admin/AdminCampusForm';
+import AdminMasterForm from './pages/admin/AdminMasterForm';
+import AdminUsers from './pages/admin/AdminUsers';
 import AdminLayout from './components/AdminLayout';
+import AdminPengaduan from './pages/admin/AdminPengaduan';
 
 // Layout Standar Mahasiswa //
 function AppLayout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F6F9FC] print:bg-white print:min-h-0 print:block">
-      <div className="print:hidden">
-        <Navbar />
-      </div>
-      <main className="flex-1 print:p-0 print:m-0 print:block">
-        {children}
-      </main>
-      <div className="print:hidden">
-        <Footer />
-      </div>
-    </div>
+    <StudentShell>{children}</StudentShell>
   );
 }
 
@@ -70,7 +81,7 @@ export default function App() {
           <Route
             path="/merchant/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
                   <MerchantDashboard />
                 </MerchantLayout>
@@ -78,30 +89,126 @@ export default function App() {
             }
           />
           <Route
-            path="/merchant/profile"
+            path="/merchant/jobs"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
-                  <MerchantProfile />
+                  <MerchantJobs />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/merchant/candidates"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantCandidates />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/jobs/:jobId/applicants"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantLayout>
+                  <KelolaPelamarLowongan />
                 </MerchantLayout>
               </ProtectedRoute>
             }
           />
           <Route
+            path="/merchant/applications/:applicationId"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantLayout>
+                  <DetailPelamar />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/applications/:applicationId/feedback"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantFeedback />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/applications/:applicationId/feedback/success"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantFeedbackSuccess />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/surveys"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantLayout>
+                  <DashboardSurveiMerchant />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/jadwal"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantJadwal />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/profile"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantLayout>
+                  <MerchantProfile />
+                </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />          <Route
             path="/merchant/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['merchant']}>
                 <MerchantLayout>
                   <MerchantSettings />
                 </MerchantLayout>
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/merchant-verifications"
+           <Route
+             path="/admin/dashboard"
+             element={
+               <ProtectedRoute allowedRoles={['admin']}>
+                 <AdminLayout><AdminDashboard /></AdminLayout>
+               </ProtectedRoute>
+             }
+           />
+           <Route
+             path="/admin/users"
+             element={
+               <ProtectedRoute allowedRoles={['admin']}>
+                 <AdminLayout><AdminUsers /></AdminLayout>
+               </ProtectedRoute>
+             }
+           />
+           <Route
+             path="/admin/verifikasi-dokumen"
+             element={
+               <ProtectedRoute allowedRoles={['admin']}>
+                 <AdminLayout><AdminVerifications /></AdminLayout>
+               </ProtectedRoute>
+             }
+           />
+           <Route
+             path="/admin/merchant-verifications"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <AdminLayout><AdminMerchantVerifications /></AdminLayout>
+                 <AdminLayout><AdminMerchantVerifications /></AdminLayout>
               </ProtectedRoute>
             }
           />
@@ -138,6 +245,16 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/admin/reports"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout><AdminPengaduan /></AdminLayout>
+            </ProtectedRoute>
+           }
+          />
+
+
           {/* ================= APP ENTRY ================= */}
           <Route
             path="/"
@@ -147,7 +264,7 @@ export default function App() {
           <Route
             path="/kesiapan-karier"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <KesiapanKarier />
                 </AppLayout>
@@ -157,7 +274,7 @@ export default function App() {
           <Route
             path="/lowongan"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <CariLowongan />
                 </AppLayout>
@@ -165,9 +282,49 @@ export default function App() {
             }
           />
           <Route
+            path="/lowongan/tersimpan"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <SavedJobs />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifikasi"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <Notifikasi />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lowongan/:jobId"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <DetailLowongan />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lowongan/:jobId/lamar"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <LamarLowongan />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/perusahaan/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <PublicMerchantProfile />
                 </AppLayout>
@@ -177,7 +334,7 @@ export default function App() {
           <Route
             path="/komunitas"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <Komunitas />
                 </AppLayout>
@@ -185,19 +342,64 @@ export default function App() {
             }
           />
           <Route
+            path="/komunitas/survei"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <SurveiKelayakan />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/lapor-masalah"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <LaporMasalah />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+
+          <Route
             path="/lamaran"
             element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <LamaranSaya />
-                </AppLayout>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <LamaranSaya />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lamaran/:applicationId"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <DetailStatusLamaran />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lamaran/:applicationId/rekomendasi"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <DetailLamaranAnda />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lamaran/:applicationId/dokumen-masukan"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <DokumenMasukan />
               </ProtectedRoute>
             }
           />
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <Dashboard />
                 </AppLayout>
@@ -207,7 +409,7 @@ export default function App() {
           <Route
             path="/profil"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <Profile />
                 </AppLayout>
@@ -217,7 +419,7 @@ export default function App() {
           <Route
             path="/cv"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <CvList />
                 </AppLayout>
@@ -227,7 +429,7 @@ export default function App() {
           <Route
             path="/portofolio"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <PortfolioList />
                 </AppLayout>

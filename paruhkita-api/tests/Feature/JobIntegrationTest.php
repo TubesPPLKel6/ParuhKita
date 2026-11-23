@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\JobCategory;
+use App\Models\StudentProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class JobIntegrationTest extends TestCase
@@ -14,6 +17,7 @@ class JobIntegrationTest extends TestCase
 
     public function test_merchant_job_is_visible_to_students_and_applications_return_to_merchant(): void
     {
+        Storage::fake('local');
         $merchant = $this->createUser('merchant', 'merchant-jobs@test.local');
         $merchant->merchantProfile()->create([
             'merchant_name' => 'Kedai Contoh',
@@ -25,6 +29,11 @@ class JobIntegrationTest extends TestCase
             'verification_status' => 'approved',
         ]);
         $student = $this->createUser('mahasiswa', 'student-jobs@test.local');
+        StudentProfile::create([
+            'user_id' => $student->id,
+            'is_verified' => true,
+            'verification_status' => 'approved',
+        ]);
         JobCategory::create([
             'name' => 'Food & Beverage',
             'description' => 'Pekerjaan kuliner.',
@@ -37,8 +46,9 @@ class JobIntegrationTest extends TestCase
                 'category' => 'Food & Beverage',
                 'subcategory' => null,
                 'schedule' => 'Senin-Jumat sore',
+                'location' => 'Yogyakarta',
                 'wage' => 'Rp25.000/jam',
-                'quota' => '2 orang',
+                'quota' => 2,
                 'description' => 'Melayani pelanggan.',
             ])
             ->assertCreated()
@@ -50,8 +60,9 @@ class JobIntegrationTest extends TestCase
             'category' => 'Food & Beverage',
             'subcategory' => null,
             'schedule' => 'Senin-Jumat sore',
+            'location' => 'Yogyakarta',
             'wage' => 'Rp26.000/jam',
-            'quota' => '2 orang',
+            'quota' => 2,
             'description' => 'Melayani pelanggan.',
         ])->assertOk()
             ->assertJsonPath('data.title', 'Barista Sore');
@@ -63,14 +74,17 @@ class JobIntegrationTest extends TestCase
             ->assertJsonPath('data.0.merchant_profile.merchant_name', 'Kedai Contoh')
             ->assertJsonPath('data.0.is_applied', false);
 
-        $this->postJson("/api/v1/jobs/{$job['id']}/applications")
+        $this->post("/api/v1/jobs/{$job['id']}/applications", $this->validApplicationData())
             ->assertCreated()
             ->assertJsonPath('data.status', 'pending');
 
         $this->getJson('/api/v1/student/applications')
             ->assertOk()
             ->assertJsonPath('data.0.job_post.title', 'Barista Sore')
-            ->assertJsonPath('data.0.job_post.merchant_profile.merchant_name', 'Kedai Contoh');
+            ->assertJsonPath('data.0.job_post.merchant_profile.merchant_name', 'Kedai Contoh')
+            ->assertJsonCount(2, 'data.0.documents')
+            ->assertJsonPath('data.0.status_histories.0.status', 'submitted')
+            ->assertJsonPath('data.0.status_histories.2.status', 'pending');
 
         $applicationId = $this->actingAs($merchant, 'sanctum')
             ->getJson('/api/v1/merchant/jobs')
@@ -91,11 +105,13 @@ class JobIntegrationTest extends TestCase
             ->assertOk();
         $this->actingAs($student, 'sanctum')
             ->getJson('/api/v1/student/applications')
-            ->assertJsonCount(0, 'data');
+            ->assertJsonCount(1, 'data');
+        $this->assertDatabaseHas('job_posts', ['id' => $job['id'], 'status' => 'archived']);
     }
 
     public function test_students_cannot_apply_twice_and_unverified_merchants_cannot_publish(): void
     {
+        Storage::fake('local');
         $merchant = $this->createUser('merchant', 'unverified@test.local');
         $merchant->merchantProfile()->create([
             'merchant_name' => 'Belum Terverifikasi',
@@ -108,8 +124,9 @@ class JobIntegrationTest extends TestCase
                 'title' => 'Kasir',
                 'category' => 'Retail',
                 'schedule' => 'Sore',
+                'location' => 'Yogyakarta',
                 'wage' => 'Rp20.000/jam',
-                'quota' => '1 orang',
+                'quota' => 1,
             ])
             ->assertForbidden();
 
@@ -130,16 +147,88 @@ class JobIntegrationTest extends TestCase
             'category' => $category->name,
             'schedule' => 'Sore',
             'wage' => 'Rp20.000/jam',
-            'quota' => '1 orang',
+            'location' => 'Yogyakarta',
+            'quota' => 1,
         ]);
 
         $student = $this->createUser('mahasiswa', 'applicant@test.local');
+        StudentProfile::create([
+            'user_id' => $student->id,
+            'is_verified' => true,
+            'verification_status' => 'approved',
+        ]);
         $this->actingAs($student, 'sanctum')
-            ->postJson("/api/v1/jobs/{$job->id}/applications")
+            ->post("/api/v1/jobs/{$job->id}/applications", $this->validApplicationData())
             ->assertCreated();
-        $this->postJson("/api/v1/jobs/{$job->id}/applications")
+        $this->postJson("/api/v1/jobs/{$job->id}/applications", ['motivation' => 'Saya tertarik dengan pekerjaan ini dan siap berkontribusi.'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('job');
+    }
+
+    public function test_student_without_approved_ktm_cannot_apply(): void
+    {
+        $merchant = $this->createUser('merchant', 'ktm-gate-merchant@test.local');
+        $profile = $merchant->merchantProfile()->create([
+            'merchant_name' => 'Terverifikasi',
+            'is_verified' => true,
+            'verification_status' => 'approved',
+        ]);
+        $job = $profile->jobPosts()->create([
+            'title' => 'Kasir',
+            'category' => 'Retail',
+            'schedule' => 'Sore',
+            'wage' => 'Rp20.000/jam',
+            'location' => 'Yogyakarta',
+            'quota' => 1,
+        ]);
+        $student = $this->createUser('mahasiswa', 'ktm-pending@test.local');
+        StudentProfile::create([
+            'user_id' => $student->id,
+            'is_verified' => false,
+            'verification_status' => 'pending',
+        ]);
+
+        $this->actingAs($student, 'sanctum')
+            ->postJson("/api/v1/jobs/{$job->id}/applications", $this->validApplicationData())
+            ->assertForbidden()
+            ->assertJsonPath('message', 'KTM harus terverifikasi admin sebelum mengajukan lamaran.');
+    }
+
+    public function test_merchant_job_requires_positive_quota_and_valid_deadline(): void
+    {
+        $merchant = $this->createUser('merchant', 'validation@test.local');
+        $merchant->merchantProfile()->create([
+            'merchant_name' => 'Merchant Validasi',
+            'is_verified' => true,
+            'verification_status' => 'approved',
+        ]);
+        JobCategory::create([
+            'name' => 'Retail',
+            'description' => 'Pekerjaan retail.',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($merchant, 'sanctum')
+            ->postJson('/api/v1/merchant/jobs', [
+                'title' => 'Kasir',
+                'category' => 'Retail',
+                'schedule' => 'Sore',
+                'location' => 'Yogyakarta',
+                'wage' => 'Rp20.000/jam',
+                'quota' => 0,
+                'application_deadline' => now()->subDay()->toDateString(),
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['quota', 'application_deadline']);
+    }
+
+    private function validApplicationData(): array
+    {
+        return [
+            'motivation' => 'Saya tertarik dengan pekerjaan ini dan siap berkontribusi.',
+            'cv' => UploadedFile::fake()->create('CV.pdf', 200, 'application/pdf'),
+            'student_id' => UploadedFile::fake()->create('KTM.pdf', 200, 'application/pdf'),
+        ];
     }
 
     private function createUser(string $role, string $email): User

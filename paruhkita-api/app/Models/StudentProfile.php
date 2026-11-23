@@ -14,6 +14,8 @@ class StudentProfile extends Model
         'university',
         'faculty',
         'major',
+        'nim',
+        'ktm_file_path',
         'degree_level',
         'entry_year',
         'graduation_year',
@@ -25,16 +27,25 @@ class StudentProfile extends Model
         'experiences',
         'portfolio_projects',
         'is_profile_public',
+        'is_verified',
+        'verification_status',
+        'verification_submitted_at',
+        'verified_at',
+        'verification_note',
+        'verified_by_user_id',
     ];
 
     protected $casts = [
         'is_profile_public' => 'boolean',
+        'is_verified' => 'boolean',
         'is_currently_studying' => 'boolean',
         'entry_year' => 'integer',
         'graduation_year' => 'integer',
         'gpa' => 'decimal:2',
         'experiences' => 'array',
         'portfolio_projects' => 'array',
+        'verification_submitted_at' => 'datetime',
+        'verified_at' => 'datetime',
     ];
 
     public function user()

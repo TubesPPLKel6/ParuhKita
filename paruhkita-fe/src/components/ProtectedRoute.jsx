@@ -20,9 +20,13 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />;
   }
 
+  if (user?.account_status === 'inactive') {
+    return <Navigate to="/login" replace />;
+  }
+
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     const homeByRole = {
-      admin: '/admin/merchant-verifications',
+       admin: '/admin/dashboard',
       merchant: '/merchant/dashboard',
       mahasiswa: '/kesiapan-karier',
     };

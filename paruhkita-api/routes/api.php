@@ -8,8 +8,16 @@ use App\Http\Controllers\Api\PortfolioController;
 use App\Http\Controllers\Api\MerchantVerificationController;
 use App\Http\Controllers\Api\MerchantProfileController;
 use App\Http\Controllers\Api\AdminReferenceDataController;
+use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\ReferenceDataController;
 use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\MerchantScheduleController;
+use App\Http\Controllers\Api\StudentApplicationController;
+use App\Http\Controllers\Api\ApplicationFeedbackController;
+use App\Http\Controllers\Api\WorkplaceSurveyController;
+use App\Http\Controllers\Api\StudentVerificationController;
+use App\Http\Controllers\Api\AdminVerificationController;
+use App\Http\Controllers\Api\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,7 +33,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login',    [AuthController::class, 'login']);
     Route::post('/logout',   [AuthController::class, 'logout'])->middleware('auth:sanctum');
-    Route::get('/me',        [AuthController::class, 'me'])->middleware('auth:sanctum');
+    Route::get('/me',        [AuthController::class, 'me'])->middleware(['auth:sanctum', 'account.active']);
 });
 
 // ============================================================
@@ -42,17 +50,61 @@ Route::prefix('v1')->group(function () {
 // ============================================================
 //  ROUTES PRIVATE (harus login dengan Sanctum token)
 // ============================================================
-Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+Route::prefix('v1')->middleware(['auth:sanctum', 'account.active', 'role'])->group(function () {
 
     Route::get('/reference/job-categories', [ReferenceDataController::class, 'jobCategories']);
+    Route::get('/admin/users', [AdminUserController::class, 'index']);
+    Route::get('/admin/users/{user}', [AdminUserController::class, 'show']);
+    Route::patch('/admin/users/{user}', [AdminUserController::class, 'update']);
+    Route::get('/student/workplace-surveys/companies', [WorkplaceSurveyController::class, 'companies']);
+    Route::get('/student/workplace-survey-reviews', [WorkplaceSurveyController::class, 'studentSummaries']);
+    Route::post('/student/workplace-surveys', [WorkplaceSurveyController::class, 'store']);
+    Route::get('/job-posts/{jobPost}/merchant-reviews', [WorkplaceSurveyController::class, 'jobReviews']);
+    Route::get('/merchants/{merchantProfile}/surveys', [WorkplaceSurveyController::class, 'merchantIndex']);
     Route::get('/jobs', [JobController::class, 'index']);
+    Route::get('/jobs/{jobPost}', [JobController::class, 'show']);
     Route::post('/jobs/{jobPost}/applications', [JobController::class, 'apply']);
     Route::get('/student/applications', [JobController::class, 'studentApplications']);
+    Route::get('/student/applications/{jobApplication}', [StudentApplicationController::class, 'show']);
+    Route::get('/student/applications/{jobApplication}/feedback-report', [StudentApplicationController::class, 'feedbackReport']);
+    Route::get('/student/applications/{jobApplication}/documents/{documentId}', [JobController::class, 'downloadApplicationDocument']);
     Route::get('/merchant/jobs', [JobController::class, 'merchantIndex']);
     Route::post('/merchant/jobs', [JobController::class, 'store']);
     Route::put('/merchant/jobs/{jobPost}', [JobController::class, 'update']);
     Route::delete('/merchant/jobs/{jobPost}', [JobController::class, 'destroy']);
     Route::patch('/merchant/applications/{jobApplication}', [JobController::class, 'updateApplication']);
+
+    Route::get('/merchant/jobs/{jobPost}/applicants', [JobController::class, 'merchantJobApplicants']);
+    Route::get('/merchant/applications/{jobApplication}', [JobController::class, 'merchantApplicationDetail']);
+    Route::get('/merchant/applications/{jobApplication}/feedback-report', [ApplicationFeedbackController::class, 'show']);
+    Route::post('/merchant/applications/{jobApplication}/feedback-report', [ApplicationFeedbackController::class, 'save']);
+    Route::post('/merchant/applications/{jobApplication}/feedback/categories', [ApplicationFeedbackController::class, 'storeCategory']);
+    Route::put('/merchant/applications/{jobApplication}/feedback/categories/{category}', [ApplicationFeedbackController::class, 'updateCategory']);
+    Route::delete('/merchant/applications/{jobApplication}/feedback/categories/{category}', [ApplicationFeedbackController::class, 'destroyCategory']);
+    Route::get('/merchant/applications/{jobApplication}/documents/{documentId}', [JobController::class, 'merchantDownloadDocument']);
+
+        // --- PELAPORAN MASALAH & PELANGGARAN (TUB-9) ---
+    Route::get('/student/reports/options', [ReportController::class, 'formOptions']);
+    Route::get('/student/reports', [ReportController::class, 'index']);
+    Route::post('/student/reports', [ReportController::class, 'store']);
+    Route::put('/student/reports/{recruitmentReport}', [ReportController::class, 'update']);
+    Route::delete('/student/reports/{recruitmentReport}', [ReportController::class, 'destroy']);
+
+    Route::get('/admin/reports', [ReportController::class, 'adminIndex']);
+    Route::patch('/admin/reports/{recruitmentReport}', [ReportController::class, 'adminFollowUp']);
+
+    Route::get('/merchant/notifications', [ReportController::class, 'merchantNotifications']);
+    Route::patch('/merchant/notifications/{merchantNotification}/read', [ReportController::class, 'markNotificationRead']);
+
+
+    // --- JADWAL SELEKSI & PENILAIAN KANDIDAT ---
+    Route::get('/merchant/schedules', [MerchantScheduleController::class, 'index']);
+    Route::get('/merchant/schedules/candidates', [MerchantScheduleController::class, 'candidates']);
+    Route::post('/merchant/schedules', [MerchantScheduleController::class, 'store']);
+    Route::put('/merchant/schedules/{schedule}', [MerchantScheduleController::class, 'update']);
+    Route::delete('/merchant/schedules/{schedule}', [MerchantScheduleController::class, 'destroy']);
+    Route::get('/merchant/schedules/{schedule}/evaluation', [MerchantScheduleController::class, 'showEvaluation']);
+    Route::post('/merchant/schedules/{schedule}/evaluation', [MerchantScheduleController::class, 'saveEvaluation']);
 
     Route::prefix('admin/reference-data')->group(function () {
         Route::get('/', [AdminReferenceDataController::class, 'index']);
@@ -75,6 +127,15 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::delete('/merchant/profile', [MerchantProfileController::class, 'destroy']);
 
     Route::post('/merchant/verification', [MerchantVerificationController::class, 'submit']);
+    Route::post('/student/verification', [StudentVerificationController::class, 'submit']);
+    Route::get('/student/verification-status', [StudentVerificationController::class, 'status']);
+    Route::get('/admin/verifications', [AdminVerificationController::class, 'index']);
+    Route::get('/admin/verifications/{type}/{profileId}/document', [AdminVerificationController::class, 'streamDocument']);
+    Route::get('/admin/verifications/{type}/{profileId}/documents/{documentId}', [AdminVerificationController::class, 'streamDocument']);
+    Route::post('/admin/verifications/batch-approve', [AdminVerificationController::class, 'batchApprove']);
+    Route::post('/admin/verifications/{type}/{id}/approve', [AdminVerificationController::class, 'approve']);
+    Route::post('/admin/verifications/{type}/{id}/request-revision', [AdminVerificationController::class, 'requestRevision']);
+    Route::post('/admin/verifications/{type}/{id}/reject', [AdminVerificationController::class, 'reject']);
     Route::get('/admin/merchant-verifications', [MerchantVerificationController::class, 'index']);
     Route::get('/admin/merchant-verifications/documents/{document}', [MerchantVerificationController::class, 'downloadDocument']);
     Route::post('/admin/merchant-verifications/{merchantProfile}/approve', [MerchantVerificationController::class, 'approve']);
@@ -82,6 +143,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // --- DASHBOARD ---
     Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
+    Route::get('/admin/dashboard', [DashboardController::class, 'adminSummary']);
 
     // --- PROFILE ---
     Route::get('/profile',            [ProfileController::class, 'show']);
