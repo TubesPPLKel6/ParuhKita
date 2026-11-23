@@ -233,6 +233,7 @@ class AdminReferenceDataController extends Controller
     private function authorizeAdmin(Request $request): void
     {
         abort_unless($request->user()?->role === 'admin', 403, 'Akses hanya untuk admin.');
+        abort_unless($request->user()?->role === 'admin', 403, 'Akses ditolak untuk peran akun ini.');
     }
 
     private function created(string $message, $data)
