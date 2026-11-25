@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('pk_token') || null);
+  const [token, setToken] = useState(sessionStorage.getItem('pk_token') || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,8 +35,8 @@ export const AuthProvider = ({ children }) => {
     }
 
     const { token: receivedToken, user: receivedUser } = data;
-    localStorage.setItem('pk_token', receivedToken);
-    localStorage.setItem('pk_user', JSON.stringify(receivedUser));
+    sessionStorage.setItem('pk_token', receivedToken);
+    sessionStorage.setItem('pk_user', JSON.stringify(receivedUser));
     sessionStorage.removeItem('pk_dismissed_notifications');
     setToken(receivedToken);
     setUser(receivedUser);
@@ -44,17 +44,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    const currentToken = token;
+    sessionStorage.removeItem('pk_token');
+    sessionStorage.removeItem('pk_user');
+    setToken(null);
+    setUser(null);
+
     try {
-      if (token) {
-        await api.post('/auth/logout');
+      if (currentToken) {
+        await api.post('/auth/logout', {}, {
+          headers: { Authorization: `Bearer ${currentToken}` },
+        });
       }
     } catch {
       // ignore
-    } finally {
-      localStorage.removeItem('pk_token');
-      localStorage.removeItem('pk_user');
-      setToken(null);
-      setUser(null);
     }
   };
 

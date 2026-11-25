@@ -25,6 +25,7 @@ import PortfolioList from './pages/student/PortfolioList';
 import SavedJobs from './pages/student/SavedJobs';
 import Notifikasi from './pages/student/Notifikasi';
 import LaporMasalah from './pages/student/LaporMasalah';
+import Messages from './pages/Messages';
 
 
 // Pages Merchant 
@@ -59,13 +60,7 @@ function AppLayout({ children }) {
 
 // Layout Khusus Merchant //
 function MerchantLayout({ children }) {
-  return (
-    <div className="min-h-screen flex flex-col bg-[#F6F9FC]">
-      <main className="flex-1">
-        {children}
-      </main>
-    </div>
-  );
+  return children;
 }
 
 export default function App() {
@@ -85,6 +80,14 @@ export default function App() {
                 <MerchantLayout>
                   <MerchantDashboard />
                 </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/messages"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <Messages />
               </ProtectedRoute>
             }
           />
@@ -298,6 +301,14 @@ export default function App() {
                 <AppLayout>
                   <Notifikasi />
                 </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pesan"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <Messages />
               </ProtectedRoute>
             }
           />

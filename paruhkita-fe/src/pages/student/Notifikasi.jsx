@@ -20,28 +20,29 @@ function deadlineMessage(job) {
 export default function Notifikasi() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState([]);
   const [search, setSearch] = useState('');
   const [read, setRead] = useState(() => JSON.parse(localStorage.getItem('pk_read_notifications') || '[]'));
 
   useEffect(() => {
-    Promise.all([api.get('/v1/jobs'), api.get('/v1/student/applications')])
-      .then(([jobsResponse, applicationsResponse]) => {
-        setJobs(jobsResponse.data.data || []);
-        setApplications(applicationsResponse.data.data || []);
-      })
+    let bookmarkIds = [];
+    try {
+      const bookmarks = JSON.parse(localStorage.getItem('pk_bookmarked_jobs') || '[]');
+      bookmarkIds = Array.isArray(bookmarks) ? bookmarks.map(Number).filter(Number.isInteger) : [];
+    } catch {
+      bookmarkIds = [];
+    }
+
+    api.get('/v1/student/notifications', { params: { bookmark_ids: bookmarkIds } })
+      .then(({ data }) => setJobs(data.data || []))
       .catch(() => {});
   }, []);
 
   const notifications = useMemo(() => {
-    const savedIds = JSON.parse(localStorage.getItem('pk_bookmarked_jobs') || '[]').map(Number);
-    const appliedIds = applications.map((application) => Number(application.job_post_id || application.job_post?.id));
-    const relevant = jobs.filter((job) => savedIds.includes(Number(job.id)) || appliedIds.includes(Number(job.id)));
-    return relevant.map((job) => {
+    return jobs.map((job) => {
       const message = deadlineMessage(job);
       return message ? { id: `${job.id}-${message.key}`, job, message: message.label } : null;
     }).filter(Boolean);
-  }, [jobs, applications]);
+  }, [jobs]);
 
   const visible = notifications.filter(({ job, message }) => {
     const query = search.trim().toLowerCase();

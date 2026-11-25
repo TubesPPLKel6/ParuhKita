@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\WorkplaceSurveyController;
 use App\Http\Controllers\Api\StudentVerificationController;
 use App\Http\Controllers\Api\AdminVerificationController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\MessageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,6 +53,16 @@ Route::prefix('v1')->group(function () {
 // ============================================================
 Route::prefix('v1')->middleware(['auth:sanctum', 'account.active', 'role'])->group(function () {
 
+    Route::get('/messages', [MessageController::class, 'index']);
+    Route::get('/messages/{conversation}', [MessageController::class, 'show']);
+    Route::post('/messages/{conversation}/messages', [MessageController::class, 'send']);
+    Route::patch('/messages/{conversation}/archive', [MessageController::class, 'updateArchive']);
+    Route::patch('/messages/{conversation}/unread', [MessageController::class, 'markUnread']);
+    Route::patch('/messages/{conversation}/read', [MessageController::class, 'markRead']);
+    Route::delete('/messages/{conversation}', [MessageController::class, 'destroy']);
+    Route::get('/messages/{conversation}/attachments/{message}', [MessageController::class, 'downloadAttachment'])
+        ->name('messages.attachment');
+
     Route::get('/reference/job-categories', [ReferenceDataController::class, 'jobCategories']);
     Route::get('/admin/users', [AdminUserController::class, 'index']);
     Route::get('/admin/users/{user}', [AdminUserController::class, 'show']);
@@ -59,6 +70,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'account.active', 'role'])->gro
     Route::get('/student/workplace-surveys/companies', [WorkplaceSurveyController::class, 'companies']);
     Route::get('/student/workplace-survey-reviews', [WorkplaceSurveyController::class, 'studentSummaries']);
     Route::post('/student/workplace-surveys', [WorkplaceSurveyController::class, 'store']);
+    Route::get('/student/notifications', [JobController::class, 'studentNotifications']);
     Route::get('/job-posts/{jobPost}/merchant-reviews', [WorkplaceSurveyController::class, 'jobReviews']);
     Route::get('/merchants/{merchantProfile}/surveys', [WorkplaceSurveyController::class, 'merchantIndex']);
     Route::get('/jobs', [JobController::class, 'index']);

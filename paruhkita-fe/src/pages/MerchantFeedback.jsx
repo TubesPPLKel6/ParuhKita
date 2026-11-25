@@ -157,7 +157,7 @@ export default function MerchantFeedback() {
   if (loading) {
     return (
       <MerchantShell active="Kandidat" activeTopNav="Kandidat" showTips={false}
-      contentClassName="px-6 py-7 lg:px-10">
+      contentClassName="px-6 py-7 lg:px-8">
         <div className="py-16 text-[13px] text-pk-muted">Memuat evaluasi pelamar...</div>
       </MerchantShell>
     );
@@ -166,7 +166,7 @@ export default function MerchantFeedback() {
   if (!payload) {
     return (
       <MerchantShell active="Kandidat" activeTopNav="Kandidat" showTips={false}
-      contentClassName="px-6 py-7 lg:px-10">
+      contentClassName="px-6 py-7 lg:px-8">
         <p role="alert" className="py-10 text-[13px] text-rose-700">{loadError}</p>
         <Link to="/merchant/candidates?status=rejected" className="text-[12px] font-bold text-pk-primary">
           Kembali ke Riwayat Pelamar
@@ -185,7 +185,7 @@ export default function MerchantFeedback() {
       merchant={{ merchant_name: merchant?.name, address: merchant?.address, is_verified: true }}
       counts={sidebar}
       showTips={false}
-      contentClassName="px-6 py-7 lg:px-10"
+      contentClassName="px-6 py-7 lg:px-8"
     >
       <div className="w-full">
         <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] font-medium text-pk-muted">

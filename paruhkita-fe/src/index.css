@@ -32,11 +32,50 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 .card-paruhkita {
   background-color: #FFFFFF;
   border: 1px solid #D8E5EE;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.merchant-page {
+  color: #102C4D;
+  font-size: 12px;
+}
+
+.merchant-page h1 {
+  color: #03045E;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.merchant-legacy-layout {
+  display: contents;
+}
+
+.merchant-legacy-layout > header,
+.merchant-legacy-layout > footer,
+.merchant-legacy-body > aside {
+  display: none !important;
+}
+
+.merchant-legacy-body {
+  display: contents !important;
+}
+
+.merchant-legacy-content {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0 !important;
+  overflow: visible !important;
 }
 
 @media print {

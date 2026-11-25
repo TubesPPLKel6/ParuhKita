@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
+import MerchantShell from '../../components/merchant/MerchantShell';
 import { 
   KeyRound, 
   Mail, 
@@ -112,7 +113,7 @@ export default function MerchantSettings() {
       await api.delete('/v1/merchant/profile');
       const updatedUser = { ...user, merchant_profile: null };
       setUser(updatedUser);
-      localStorage.setItem('pk_user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('pk_user', JSON.stringify(updatedUser));
       navigate('/merchant/dashboard', { replace: true });
     } catch (error) {
       setHapusError(
@@ -125,10 +126,11 @@ export default function MerchantSettings() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F6F9FC]">
+    <MerchantShell active="Pengaturan" merchant={merchantProfile}>
+    <div className="min-h-screen flex flex-col bg-[#F6F9FC] merchant-legacy-layout">
       
       {/* Header Utama Figma */}
-      <header className="bg-[#03045E] text-white px-6 py-3.5 flex justify-between items-center relative shadow-sm shrink-0">
+      <header className="sticky top-0 z-40 h-16 bg-[#03045E] text-white px-6 flex justify-between items-center relative shadow-sm shrink-0">
         <div className="flex items-center gap-2.5 z-10 cursor-pointer" onClick={() => navigate('/merchant/dashboard')}>
           <div className="w-8 h-8 rounded-xl bg-[#00B4D8] flex items-center justify-center text-white shadow-xs">
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -140,10 +142,12 @@ export default function MerchantSettings() {
           <span className="font-extrabold text-lg tracking-tight">ParuhKita</span>
         </div>
         
-        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold absolute left-1/2 -translate-x-1/2">
+        <nav className="hidden md:flex items-center gap-5 text-xs font-semibold absolute left-1/2 -translate-x-1/2">
           <button onClick={() => navigate('/merchant/dashboard')} className="text-slate-300 hover:text-white transition">Dashboard</button>
           <button onClick={() => navigate('/merchant/candidates')} className="text-slate-300 hover:text-white transition">Kandidat</button>
-          <button onClick={() => navigate('/merchant/dashboard')} className="text-slate-300 hover:text-white transition">Lowongan</button>
+          <button onClick={() => navigate('/merchant/jobs')} className="text-slate-300 hover:text-white transition">Lowongan</button>
+          <button onClick={() => navigate('/merchant/surveys')} className="text-slate-300 hover:text-white transition">Ulasan</button>
+          <button onClick={() => navigate('/merchant/messages')} className="text-slate-300 hover:text-white transition">Pesan</button>
         </nav>
 
         <div className="flex items-center gap-4 z-10">
@@ -175,10 +179,10 @@ export default function MerchantSettings() {
       </header>
 
       {/* Body Utama */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 merchant-legacy-body">
         
         {/* Sidebar Kiri Merchant (Pengaturan AKTIF / BOLD BLUE PILL) */}
-        <aside className="w-64 bg-white border-r border-[#D8E5EE] flex flex-col justify-between hidden lg:flex shrink-0">
+        <aside className="w-[221px] bg-white border-r border-[#D8E5EE] flex flex-col justify-between hidden lg:flex shrink-0">
           <div>
             <div className="p-6 border-b border-[#D8E5EE]">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#536B82]">Ruang Merchant</span>
@@ -196,7 +200,7 @@ export default function MerchantSettings() {
                 <span>Ringkasan</span>
               </button>
               <button 
-                onClick={() => navigate('/merchant/dashboard')}
+                onClick={() => navigate('/merchant/jobs')}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left transition"
               >
                 <span>Lowongan</span>
@@ -213,8 +217,14 @@ export default function MerchantSettings() {
               >
                 <span>Jadwal</span>
               </button>
+              <button
+                onClick={() => navigate('/merchant/surveys')}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left transition"
+              >
+                <span>Survei Kelayakan</span>
+              </button>
               <button 
-                onClick={() => navigate('/merchant/dashboard')}
+                onClick={() => navigate('/merchant/messages')}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#536B82] hover:bg-slate-50 text-left transition"
               >
                 <span>Pesan</span>
@@ -237,7 +247,7 @@ export default function MerchantSettings() {
         </aside>
 
         {/* Konten Halaman Pengaturan */}
-        <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto">
+        <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto merchant-legacy-content">
           <div className="max-w-5xl mx-auto space-y-6">
             
             {/* Header Title */}
@@ -518,7 +528,7 @@ export default function MerchantSettings() {
 
             </div>
           </div>
-        </main>
+        </div>
       </div>
 
       {/* FOOTER DARK NAVY SESUAI FIGMA */}
@@ -651,5 +661,6 @@ export default function MerchantSettings() {
       )}
 
     </div>
+    </MerchantShell>
   );
 }

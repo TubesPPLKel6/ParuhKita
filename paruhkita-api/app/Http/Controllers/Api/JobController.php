@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Events\MessageSent;
+use App\Models\Conversation;
+use App\Models\ConversationUserState;
 use App\Models\JobApplication;
 use App\Models\JobCategory;
 use App\Models\JobPost;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -159,7 +163,7 @@ class JobController extends Controller
                 }
             }
 
-            $application = DB::transaction(function () use ($jobPost, $request, $validated, $storedFiles) {
+            [$application, $welcomeMessage] = DB::transaction(function () use ($jobPost, $request, $validated, $storedFiles) {
                 $application = $jobPost->applications()->create([
                     'user_id' => $request->user()->id,
                     'status' => 'pending',
@@ -191,7 +195,22 @@ class JobController extends Controller
                     'note' => 'Masuk antrean peninjauan merchant.',
                 ]);
 
-                return $application;
+                $conversation = Conversation::create(['job_application_id' => $application->id]);
+                foreach ([$application->user_id, $jobPost->merchantProfile->user_id] as $userId) {
+                    ConversationUserState::create([
+                        'conversation_id' => $conversation->id,
+                        'user_id' => $userId,
+                    ]);
+                }
+                $welcomeMessage = Message::create([
+                    'conversation_id' => $conversation->id,
+                    'sender_id' => $application->user_id,
+                    'body' => 'Hai, aku ' . $request->user()->name . '! Aku baru saja melamar posisi '
+                        . $jobPost->title . ' di ' . $jobPost->merchantProfile->merchant_name
+                        . '. Aku tertarik dengan kesempatan ini dan berharap bisa berdiskusi lebih lanjut. Terima kasih!',
+                ]);
+
+                return [$application, $welcomeMessage];
             });
         } catch (\Throwable $error) {
             foreach ($storedFiles as $file) {
@@ -199,6 +218,8 @@ class JobController extends Controller
             }
             throw $error;
         }
+
+        event(new MessageSent($welcomeMessage->load('sender:id,name')));
 
         return response()->json([
             'status' => true,
@@ -215,6 +236,47 @@ class JobController extends Controller
             ->get();
 
         return response()->json(['status' => true, 'data' => $applications]);
+    }
+
+    public function studentNotifications(Request $request)
+    {
+        abort_unless($request->user()->role === 'mahasiswa', 403, 'Akses hanya untuk mahasiswa.');
+
+        $validated = $request->validate([
+            'bookmark_ids' => 'sometimes|array|max:1000',
+            'bookmark_ids.*' => 'required|integer|distinct',
+        ]);
+        $userId = $request->user()->id;
+        $bookmarkIds = $validated['bookmark_ids'] ?? [];
+        $today = now()->toDateString();
+
+        $notifications = JobPost::query()
+            ->select(['id', 'merchant_profile_id', 'title', 'application_deadline'])
+            ->where('status', 'active')
+            ->whereBetween('application_deadline', [$today, now()->addDays(7)->toDateString()])
+            ->whereHas('merchantProfile', fn ($query) => $query->where('is_verified', true))
+            ->where(function ($query) use ($userId, $bookmarkIds) {
+                $query->whereHas('applications', fn ($applications) => $applications->where('user_id', $userId))
+                    ->orWhereIn('id', $bookmarkIds);
+            })
+            ->with('merchantProfile:id,merchant_name')
+            ->withExists([
+                'applications as is_applied' => fn ($query) => $query->where('user_id', $userId),
+            ])
+            ->orderBy('application_deadline')
+            ->get()
+            ->map(fn (JobPost $job) => [
+                'id' => $job->id,
+                'title' => $job->title,
+                'application_deadline' => $job->application_deadline?->toDateString(),
+                'merchant_profile' => [
+                    'id' => $job->merchantProfile->id,
+                    'merchant_name' => $job->merchantProfile->merchant_name,
+                ],
+                'is_applied' => (bool) $job->is_applied,
+            ]);
+
+        return response()->json(['status' => true, 'data' => $notifications]);
     }
 
     public function downloadApplicationDocument(Request $request, JobApplication $jobApplication, $documentId)

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Bookmark, ChevronLeft, ChevronRight, ClipboardList, GraduationCap, LogOut, ShieldAlert, Search, Users, X } from 'lucide-react';
+import { Bell, Bookmark, ChevronLeft, ChevronRight, ClipboardList, GraduationCap, LogOut, MessageCircle, ShieldAlert, Search, Users, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Footer from '../Footer';
 import useSidebarCollapsed from '../../hooks/useSidebarCollapsed';
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { key: 'Notifikasi', icon: Bell, to: '/notifikasi' },
   { key: 'Kesiapan karier', icon: GraduationCap, to: '/kesiapan-karier' },
   { key: 'Lamaran saya', icon: ClipboardList, to: '/lamaran' },
+  { key: 'Pesan', icon: MessageCircle, to: '/pesan' },
   { key: 'Komunitas', icon: Users, to: '/komunitas' },
   { key: 'Lapor masalah', icon: ShieldAlert, to: '/lapor-masalah' },
 ];
@@ -119,17 +120,19 @@ export default function StudentShell({ active, children, searchValue = '', onSea
       }
     };
     const loadNotifications = () => {
-      Promise.all([
-        api.get('/v1/jobs'),
-        api.get('/v1/student/applications').catch(() => ({ data: { data: [] } })),
-      ])
-        .then(([jobsResponse, applicationsResponse]) => {
-          const savedIds = JSON.parse(localStorage.getItem('pk_bookmarked_jobs') || '[]').map(Number);
-          const appliedIds = (applicationsResponse.data.data || []).map((application) => Number(application.job_post_id || application.job_post?.id));
-          const notifications = (jobsResponse.data.data || []).map((job) => {
-            const relevant = savedIds.includes(Number(job.id)) || appliedIds.includes(Number(job.id));
-            const stage = relevant ? deadlineStage(job) : null;
-            return stage ? { id: `${job.id}-${stage.key}`, job, stage, isApplied: appliedIds.includes(Number(job.id)) } : null;
+      let savedIds = [];
+      try {
+        const bookmarks = JSON.parse(localStorage.getItem('pk_bookmarked_jobs') || '[]');
+        savedIds = Array.isArray(bookmarks) ? bookmarks.map(Number).filter(Number.isInteger) : [];
+      } catch {
+        savedIds = [];
+      }
+
+      api.get('/v1/student/notifications', { params: { bookmark_ids: savedIds } })
+        .then(({ data }) => {
+          const notifications = (data.data || []).map((job) => {
+            const stage = deadlineStage(job);
+            return stage ? { id: `${job.id}-${stage.key}`, job, stage, isApplied: job.is_applied } : null;
           }).filter(Boolean);
           const dismissed = JSON.parse(sessionStorage.getItem('pk_dismissed_notifications') || '[]');
           const activeNotifications = notifications.filter((notification) => !dismissed.includes(notification.id));
