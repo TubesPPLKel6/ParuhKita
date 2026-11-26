@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\AdminVerificationController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\QuickReplyTemplateController;
+use App\Http\Controllers\Api\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -185,6 +186,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'account.active', 'role'])->gro
     Route::put('/cv/{id}',              [CvController::class, 'update']);
     Route::patch('/cv/{id}/set-primary', [CvController::class, 'setPrimary']);
     Route::delete('/cv/{id}',           [CvController::class, 'destroy']);
+
+    // --- ACTIVITY LOG (read-only) ---
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
 
     // --- PORTFOLIO ---
     Route::get('/portfolio',          [PortfolioController::class, 'index']);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Campus;
+use App\Services\ActivityLogService;
 use App\Models\JobCategory;
 use App\Models\JobSubcategory;
 use App\Models\StudyProgram;
@@ -61,6 +62,8 @@ class AdminReferenceDataController extends Controller
             'accreditation' => 'nullable|string|max:50',
         ]));
 
+        ActivityLogService::logAuth('create', 'Menambahkan data kampus ' . $campus->name, 'Campus', $campus->id);
+
         return $this->created('Kampus berhasil ditambahkan.', $campus->loadCount('studyPrograms'));
     }
 
@@ -75,6 +78,8 @@ class AdminReferenceDataController extends Controller
             'accreditation' => 'nullable|string|max:50',
         ]));
 
+        ActivityLogService::logAuth('update', 'Memperbarui data kampus ' . $campus->name, 'Campus', $campus->id);
+
         return $this->success('Kampus berhasil diperbarui.', $campus->fresh()->loadCount('studyPrograms'));
     }
 
@@ -88,6 +93,7 @@ class AdminReferenceDataController extends Controller
             ], 422);
         }
 
+        ActivityLogService::logAuth('delete', 'Menghapus data kampus ' . $campus->name, 'Campus', $campus->id);
         $campus->delete();
         return $this->success('Kampus berhasil dihapus.');
     }
@@ -113,6 +119,8 @@ class AdminReferenceDataController extends Controller
                     ->where('campus_id', $request->input('campus_id')),
             ],
         ]));
+
+        ActivityLogService::logAuth('create', 'Menambahkan program studi ' . $program->name, 'StudyProgram', $program->id);
 
         return $this->created('Program studi berhasil ditambahkan.', $program->load('campus:id,name'));
     }
@@ -143,12 +151,15 @@ class AdminReferenceDataController extends Controller
         ]);
         $studyProgram->update($validated);
 
+        ActivityLogService::logAuth('update', 'Memperbarui program studi ' . $studyProgram->name, 'StudyProgram', $studyProgram->id);
+
         return $this->success('Program studi berhasil diperbarui.', $studyProgram->fresh()->load('campus:id,name'));
     }
 
     public function destroyStudyProgram(Request $request, StudyProgram $studyProgram)
     {
         $this->authorizeAdmin($request);
+        ActivityLogService::logAuth('delete', 'Menghapus program studi ' . $studyProgram->name, 'StudyProgram', $studyProgram->id);
         $studyProgram->delete();
 
         return $this->success('Program studi berhasil dihapus.');
@@ -163,6 +174,8 @@ class AdminReferenceDataController extends Controller
             'status' => ['sometimes', 'required', Rule::in(['active', 'inactive'])],
         ]));
 
+        ActivityLogService::logAuth('create', 'Menambahkan kategori pekerjaan ' . $category->name, 'JobCategory', $category->id);
+
         return $this->created('Kategori pekerjaan berhasil ditambahkan.', $category);
     }
 
@@ -175,12 +188,15 @@ class AdminReferenceDataController extends Controller
             'status' => ['sometimes', 'required', Rule::in(['active', 'inactive'])],
         ]));
 
+        ActivityLogService::logAuth('update', 'Memperbarui kategori pekerjaan ' . $jobCategory->name, 'JobCategory', $jobCategory->id);
+
         return $this->success('Kategori pekerjaan berhasil diperbarui.', $jobCategory->fresh());
     }
 
     public function destroyJobCategory(Request $request, JobCategory $jobCategory)
     {
         $this->authorizeAdmin($request);
+        ActivityLogService::logAuth('delete', 'Menghapus kategori pekerjaan ' . $jobCategory->name, 'JobCategory', $jobCategory->id);
         $jobCategory->delete();
 
         return $this->success('Kategori pekerjaan berhasil dihapus.');
@@ -199,6 +215,8 @@ class AdminReferenceDataController extends Controller
             ],
         ]);
         $subcategory = JobSubcategory::create($validated);
+
+        ActivityLogService::logAuth('create', 'Menambahkan subkategori pekerjaan ' . $subcategory->name, 'JobSubcategory', $subcategory->id);
 
         return $this->created('Subkategori pekerjaan berhasil ditambahkan.', $subcategory->load('category:id,name'));
     }
@@ -219,12 +237,15 @@ class AdminReferenceDataController extends Controller
         ]);
         $jobSubcategory->update($validated);
 
+        ActivityLogService::logAuth('update', 'Memperbarui subkategori pekerjaan ' . $jobSubcategory->name, 'JobSubcategory', $jobSubcategory->id);
+
         return $this->success('Subkategori pekerjaan berhasil diperbarui.', $jobSubcategory->fresh()->load('category:id,name'));
     }
 
     public function destroyJobSubcategory(Request $request, JobSubcategory $jobSubcategory)
     {
         $this->authorizeAdmin($request);
+        ActivityLogService::logAuth('delete', 'Menghapus subkategori pekerjaan ' . $jobSubcategory->name, 'JobSubcategory', $jobSubcategory->id);
         $jobSubcategory->delete();
 
         return $this->success('Subkategori pekerjaan berhasil dihapus.');

@@ -7,6 +7,7 @@ use App\Models\InterviewEvaluation;
 use App\Models\InterviewSchedule;
 use App\Models\JobApplication;
 use App\Models\JobPost;
+use App\Services\ActivityLogService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -228,6 +229,13 @@ class MerchantScheduleController extends Controller
             return $schedule;
         });
 
+        ActivityLogService::logAuth(
+            'create',
+            'Menambahkan jadwal wawancara untuk pelamar ' . ($application->load('student:id,name')->student?->name ?? 'pelamar'),
+            'InterviewSchedule',
+            $schedule->id
+        );
+
         return response()->json([
             'status' => true,
             'message' => 'Jadwal wawancara berhasil dibuat.',
@@ -305,6 +313,8 @@ class MerchantScheduleController extends Controller
         $profile = $this->merchantProfile($request);
         abort_unless($schedule->merchant_profile_id === $profile->id, 404, 'Jadwal tidak ditemukan.');
 
+        $candidateName = $schedule->load('candidate:id,name')->candidate?->name ?? 'pelamar';
+        ActivityLogService::logAuth('delete', 'Menghapus jadwal wawancara untuk ' . $candidateName, 'InterviewSchedule', $schedule->id);
         $schedule->delete();
 
         return response()->json([

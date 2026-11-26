@@ -10,6 +10,7 @@ import {
   ClipboardList,
   CalendarDays,
   MessageCircle,
+  History,
   Settings,
   UserRound,
   Headphones,
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { key: 'Survei Kelayakan', icon: ClipboardList, to: '/merchant/surveys' },
   { key: 'Jadwal', icon: CalendarDays, to: '/merchant/jadwal' },
   { key: 'Pesan', icon: MessageCircle, to: '/merchant/messages', badgeKey: 'messages' },
+  { key: 'Log Aktivitas', icon: History, to: '/merchant/log-aktivitas' },
   { key: 'Pengaturan', icon: Settings, to: '/merchant/settings' },
   { key: 'Profil', icon: UserRound, to: '/merchant/profile' },
 ];
@@ -47,7 +49,7 @@ export default function MerchantShell({
   merchant,
   counts = {},
   headerActions,
-  showTips = true,
+  showTips = false,
   contentClassName = 'px-6 py-7 lg:px-8',
   children,
 }) {

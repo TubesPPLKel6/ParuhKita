@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, BookOpen, ChevronLeft, ChevronRight, GraduationCap, LayoutDashboard, Menu, MessageCircle, School, ShieldCheck, Users, X } from 'lucide-react';
+import { Bell, BookOpen, ChevronLeft, ChevronRight, GraduationCap, History, LayoutDashboard, Menu, MessageCircle, School, ShieldCheck, Users, X } from 'lucide-react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import useSidebarCollapsed from '../hooks/useSidebarCollapsed';
@@ -11,6 +11,7 @@ const navigation = [
   { to: '/admin/reference-data', label: 'Data Master', icon: School },
   { to: '/admin/reports', label: 'Pengaduan', icon: Bell, badge: '!' },
   { to: '/admin/dashboard', label: 'Laporan & Audit', icon: BookOpen, active: false },
+  { to: '/admin/log-aktivitas', label: 'Log Aktivitas', icon: History },
 ];
 
 export default function AdminLayout({ children }) {

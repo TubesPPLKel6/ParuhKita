@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Bookmark, ChevronLeft, ChevronRight, ClipboardList, GraduationCap, LogOut, MessageCircle, ShieldAlert, Search, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, Bookmark, ChevronLeft, ChevronRight, ClipboardList, GraduationCap, Headphones, History, LogOut, MessageCircle, ShieldAlert, Search, Users, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Footer from '../Footer';
 import useSidebarCollapsed from '../../hooks/useSidebarCollapsed';
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { key: 'Lamaran saya', icon: ClipboardList, to: '/lamaran' },
   { key: 'Pesan', icon: MessageCircle, to: '/pesan' },
   { key: 'Komunitas', icon: Users, to: '/komunitas' },
+  { key: 'Log Aktivitas', icon: History, to: '/log-aktivitas' },
   { key: 'Lapor masalah', icon: ShieldAlert, to: '/lapor-masalah' },
 ];
 
@@ -314,6 +315,25 @@ export default function StudentShell({ active, children, searchValue = '', onSea
               );
             })}
           </nav>
+
+          {!sidebarCollapsed && (
+            <div className="px-3 pb-4">
+              <div className="rounded-xl bg-pk-pastel px-4 py-4">
+                <Headphones className="h-5 w-5 text-pk-primary" />
+                <p className="mt-2 text-[12px] font-bold text-pk-navy">Butuh bantuan?</p>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-pk-muted">
+                  Tim ParuhKita siap membantu perjalanan kariermu.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/lapor-masalah')}
+                  className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-pk-primary hover:underline"
+                >
+                  Hubungi kami <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          )}
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
