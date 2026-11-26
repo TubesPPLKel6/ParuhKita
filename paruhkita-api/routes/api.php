@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\StudentVerificationController;
 use App\Http\Controllers\Api\AdminVerificationController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\QuickReplyTemplateController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -62,6 +63,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'account.active', 'role'])->gro
     Route::delete('/messages/{conversation}', [MessageController::class, 'destroy']);
     Route::get('/messages/{conversation}/attachments/{message}', [MessageController::class, 'downloadAttachment'])
         ->name('messages.attachment');
+
+    // --- TEMPLAT BALASAN CEPAT MERCHANT ---
+    Route::get('/merchant/quick-reply-templates', [QuickReplyTemplateController::class, 'index']);
+    Route::get('/merchant/quick-reply-templates/active', [QuickReplyTemplateController::class, 'active']);
+    Route::post('/merchant/quick-reply-templates', [QuickReplyTemplateController::class, 'store']);
+    Route::put('/merchant/quick-reply-templates/{quickReplyTemplate}', [QuickReplyTemplateController::class, 'update']);
+    Route::delete('/merchant/quick-reply-templates/{quickReplyTemplate}', [QuickReplyTemplateController::class, 'destroy']);
 
     Route::get('/reference/job-categories', [ReferenceDataController::class, 'jobCategories']);
     Route::get('/admin/users', [AdminUserController::class, 'index']);

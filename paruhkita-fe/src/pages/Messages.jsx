@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Archive, ArrowLeft, Check, CheckCheck, Download, FileText, Image, MessageCircle, MoreHorizontal, Paperclip, Search, Send, Trash2, Undo2 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Archive, ArrowLeft, Check, CheckCheck, ChevronDown, ChevronUp, Download, FileText, Image, MessageCircle, MessageSquareText, MoreHorizontal, Paperclip, Plus, Search, Send, Trash2, Undo2 } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { getRealtimeClient } from '../api/realtime';
@@ -41,8 +41,21 @@ function shortMessage(message) {
   return message.body || message.attachment_name || 'Lampiran';
 }
 
+function resolveTemplateVariables(body, conversation) {
+  if (!body || !conversation) return body || '';
+  const applicantName = conversation.other_user?.name || '';
+  const jobTitle = conversation.job_title || '';
+  const merchantName = conversation.merchant_name || '';
+
+  return body
+    .replace(/\{\s*nama[_\s]+pelamar\s*\}/gi, applicantName)
+    .replace(/\{\s*posisi[_\s]+lowongan\s*\}/gi, jobTitle)
+    .replace(/\{\s*nama[_\s]+usaha\s*\}/gi, merchantName);
+}
+
 function MessagesContent({ isMerchant }) {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedApplicationId = searchParams.get('applicationId');
   const [filter, setFilter] = useState('all');
@@ -59,8 +72,14 @@ function MessagesContent({ isMerchant }) {
   const [notice, setNotice] = useState('');
   const [realtimeConnected, setRealtimeConnected] = useState(false);
   const [menuId, setMenuId] = useState(null);
+  const [templateOpen, setTemplateOpen] = useState(false);
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [activeTemplates, setActiveTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   const fileInput = useRef(null);
   const messagesContainerRef = useRef(null);
+  const templatePopoverRef = useRef(null);
+  const draftTextareaRef = useRef(null);
   const selectedConversation = conversations.find((item) => item.id === selectedId);
 
   const refreshList = useCallback(async (preferredId = null, selectFirst = true) => {
@@ -90,6 +109,61 @@ function MessagesContent({ isMerchant }) {
   useEffect(() => {
     refreshList();
   }, [refreshList]);
+
+  const fetchActiveTemplates = useCallback(async () => {
+    if (!isMerchant) return;
+    setLoadingTemplates(true);
+    try {
+      const response = await api.get('/v1/merchant/quick-reply-templates/active');
+      setActiveTemplates(response.data?.data || []);
+    } catch {
+      setActiveTemplates([]);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }, [isMerchant]);
+
+  useEffect(() => {
+    fetchActiveTemplates();
+  }, [fetchActiveTemplates]);
+
+  useEffect(() => {
+    if (!templateOpen) return undefined;
+    const handleClickOutside = (event) => {
+      if (templatePopoverRef.current && !templatePopoverRef.current.contains(event.target)) {
+        setTemplateOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setTemplateOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [templateOpen]);
+
+  const filteredTemplates = useMemo(() => {
+    const q = templateSearch.trim().toLocaleLowerCase('id');
+    if (!q) return activeTemplates;
+    return activeTemplates.filter((item) => {
+      const resolved = resolveTemplateVariables(item.body, selectedConversation);
+      return `${item.title} ${item.category} ${resolved}`.toLocaleLowerCase('id').includes(q);
+    });
+  }, [activeTemplates, templateSearch, selectedConversation]);
+
+  const handleSelectTemplate = (template) => {
+    const resolvedBody = resolveTemplateVariables(template.body, selectedConversation);
+    setDraft(resolvedBody);
+    setError('');
+    setTemplateOpen(false);
+    setTemplateSearch('');
+    window.requestAnimationFrame(() => {
+      draftTextareaRef.current?.focus();
+    });
+  };
 
   useEffect(() => {
     if (!selectedId) {
@@ -273,9 +347,21 @@ function MessagesContent({ isMerchant }) {
           </h1>
           <p className="mt-1 text-[12px] text-pk-muted">Lanjutkan percakapan terkait proses lamaran dan pekerjaan secara langsung.</p>
         </div>
-        <span className="rounded-md bg-pk-soft px-2.5 py-1 text-[10px] font-bold uppercase text-pk-primary">
-          {isMerchant ? 'Merchant' : 'Mahasiswa'}
-        </span>
+        <div className="flex items-center gap-2.5">
+          {isMerchant && (
+            <button
+              type="button"
+              onClick={() => navigate('/merchant/messages/templates')}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-pk-border bg-white px-3 py-1.5 text-[11px] font-bold text-pk-primary shadow-2xs transition hover:bg-pk-soft"
+            >
+              <MessageSquareText className="h-3.5 w-3.5" />
+              <span>Kelola Templat</span>
+            </button>
+          )}
+          <span className="rounded-md bg-pk-soft px-2.5 py-1 text-[10px] font-bold uppercase text-pk-primary">
+            {isMerchant ? 'Merchant' : 'Mahasiswa'}
+          </span>
+        </div>
       </div>
 
       <div className="mb-4 rounded-xl border border-pk-border bg-white p-3">
@@ -404,6 +490,104 @@ function MessagesContent({ isMerchant }) {
               </div>
 
               <form onSubmit={sendMessage} className="shrink-0 border-t border-pk-border bg-white p-3 sm:p-4">
+                {isMerchant && (
+                  <div ref={templatePopoverRef} className="relative mb-2.5 flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextOpen = !templateOpen;
+                        setTemplateOpen(nextOpen);
+                        if (nextOpen) fetchActiveTemplates();
+                      }}
+                      aria-expanded={templateOpen}
+                      aria-haspopup="dialog"
+                      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition ${
+                        templateOpen
+                          ? 'border-pk-cyan bg-[#EFF6FF] text-pk-primary'
+                          : 'border-pk-border bg-pk-soft/70 text-pk-primary hover:bg-pk-soft'
+                      }`}
+                    >
+                      <MessageSquareText className="h-3.5 w-3.5" />
+                      <span>Templat</span>
+                      {templateOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+                    </button>
+                    <span className="text-[10.5px] text-pk-muted">
+                      Variabel terisi otomatis sesuai pelamar
+                    </span>
+
+                    {templateOpen && (
+                      <div
+                        role="dialog"
+                        aria-label="Pilih Templat Balasan Cepat"
+                        className="absolute bottom-full left-0 z-30 mb-2 w-full max-w-[420px] overflow-hidden rounded-xl border border-pk-border bg-white shadow-xl"
+                      >
+                        <div className="flex items-center justify-between border-b border-pk-border px-4 py-3">
+                          <h3 className="text-[13px] font-extrabold text-pk-navy">Pilih Templat Balasan Cepat</h3>
+                          <button
+                            type="button"
+                            onClick={() => navigate('/merchant/messages/templates')}
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-pk-primary transition hover:underline"
+                          >
+                            <Plus className="h-3 w-3" />
+                            <span>Kelola Templat</span>
+                          </button>
+                        </div>
+
+                        <div className="border-b border-pk-border/70 p-2.5">
+                          <label className="relative block">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-pk-hint" />
+                            <input
+                              type="text"
+                              value={templateSearch}
+                              onChange={(event) => setTemplateSearch(event.target.value)}
+                              placeholder="Cari templat..."
+                              aria-label="Cari templat balasan cepat"
+                              className="h-9 w-full rounded-lg border border-pk-border bg-pk-canvas/60 pl-8.5 pr-3 text-[11.5px] text-pk-body placeholder:text-pk-placeholder outline-none focus:border-pk-cyan focus:bg-white"
+                            />
+                          </label>
+                        </div>
+
+                        <div className="max-h-60 overflow-y-auto divide-y divide-pk-border/60">
+                          {loadingTemplates ? (
+                            <p className="px-4 py-6 text-center text-[11.5px] text-pk-muted">Memuat templat aktif...</p>
+                          ) : filteredTemplates.length === 0 ? (
+                            <div className="px-4 py-6 text-center">
+                              <p className="text-[12px] font-semibold text-pk-navy">
+                                {activeTemplates.length === 0 ? 'Belum ada templat aktif' : 'Templat tidak ditemukan'}
+                              </p>
+                              <p className="mt-1 text-[11px] text-pk-muted">
+                                {activeTemplates.length === 0
+                                  ? 'Buat templat berstatus Aktif melalui menu Kelola Templat.'
+                                  : 'Coba kata kunci pencarian lain.'}
+                              </p>
+                            </div>
+                          ) : (
+                            filteredTemplates.map((template) => {
+                              const resolvedPreview = resolveTemplateVariables(template.body, selectedConversation);
+                              return (
+                                <button
+                                  key={template.id}
+                                  type="button"
+                                  onClick={() => handleSelectTemplate(template)}
+                                  className="block w-full px-4 py-3 text-left transition hover:bg-[#EFF6FF]"
+                                >
+                                  <p className="text-[12px] font-bold text-pk-navy">{template.title}</p>
+                                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-pk-muted">
+                                    {resolvedPreview}
+                                  </p>
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+
+                        <div className="border-t border-pk-border bg-pk-canvas/60 px-4 py-2 text-[10.5px] text-pk-muted">
+                          {activeTemplates.length} templat aktif · Variabel menyesuaikan penerima
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {!isMerchant && (
                   <div className="mb-3">
                     <p className="mb-1.5 text-[10px] font-semibold text-pk-muted">Balasan cepat</p>
@@ -440,6 +624,7 @@ function MessagesContent({ isMerchant }) {
                   }} />
                   <button type="button" onClick={() => fileInput.current?.click()} title="Lampirkan dokumen atau gambar" className="mb-1 rounded-lg p-2 text-pk-muted hover:bg-pk-soft hover:text-pk-primary"><Paperclip className="h-4 w-4" /></button>
                   <textarea
+                    ref={draftTextareaRef}
                     value={draft}
                     onChange={(event) => setDraft(event.target.value)}
                     onKeyDown={(event) => {

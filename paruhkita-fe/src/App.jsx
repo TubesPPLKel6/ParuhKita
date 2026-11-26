@@ -40,6 +40,7 @@ import DetailPelamar from './pages/merchant/DetailPelamar';
 import DashboardSurveiMerchant from './pages/merchant/DashboardSurveiMerchant';
 import MerchantProfile from './pages/merchant/MerchantProfile';
 import MerchantSettings from './pages/merchant/MerchantSettings';
+import MerchantQuickReplyTemplates from './pages/merchant/MerchantQuickReplyTemplates';
 import AdminMerchantVerifications from './pages/admin/AdminMerchantVerifications';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminVerifications from './pages/admin/AdminVerifications';
@@ -88,6 +89,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['merchant']}>
                 <Messages />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/messages/templates"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantQuickReplyTemplates />
               </ProtectedRoute>
             }
           />
