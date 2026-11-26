@@ -25,6 +25,7 @@ import PortfolioList from './pages/student/PortfolioList';
 import SavedJobs from './pages/student/SavedJobs';
 import Notifikasi from './pages/student/Notifikasi';
 import LaporMasalah from './pages/student/LaporMasalah';
+import StudentActivityLog from './pages/student/StudentActivityLog';
 import Messages from './pages/Messages';
 
 
@@ -40,6 +41,7 @@ import DetailPelamar from './pages/merchant/DetailPelamar';
 import DashboardSurveiMerchant from './pages/merchant/DashboardSurveiMerchant';
 import MerchantProfile from './pages/merchant/MerchantProfile';
 import MerchantSettings from './pages/merchant/MerchantSettings';
+import MerchantActivityLog from './pages/merchant/MerchantActivityLog';
 import MerchantQuickReplyTemplates from './pages/merchant/MerchantQuickReplyTemplates';
 import AdminMerchantVerifications from './pages/admin/AdminMerchantVerifications';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -51,6 +53,7 @@ import AdminMasterForm from './pages/admin/AdminMasterForm';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminLayout from './components/AdminLayout';
 import AdminPengaduan from './pages/admin/AdminPengaduan';
+import AdminActivityLog from './pages/admin/AdminActivityLog';
 
 // Layout Standar Mahasiswa //
 function AppLayout({ children }) {
@@ -192,6 +195,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/merchant/log-aktivitas"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantActivityLog />
+              </ProtectedRoute>
+            }
+          />
            <Route
              path="/admin/dashboard"
              element={
@@ -264,6 +275,14 @@ export default function App() {
                 <AdminLayout><AdminPengaduan /></AdminLayout>
             </ProtectedRoute>
            }
+          />
+          <Route
+            path="/admin/log-aktivitas"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminActivityLog />
+              </ProtectedRoute>
+            }
           />
 
 
@@ -378,6 +397,16 @@ export default function App() {
               <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <LaporMasalah />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/log-aktivitas"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <StudentActivityLog />
                 </AppLayout>
               </ProtectedRoute>
             }

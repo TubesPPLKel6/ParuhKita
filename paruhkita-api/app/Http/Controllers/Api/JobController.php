@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Events\MessageSent;
+use App\Services\ActivityLogService;
 use App\Models\Conversation;
 use App\Models\ConversationUserState;
 use App\Models\JobApplication;
@@ -75,6 +76,8 @@ class JobController extends Controller
 
         $job = $profile->jobPosts()->create($validated);
 
+        ActivityLogService::logAuth('create', 'Menambahkan lowongan ' . $job->title, 'JobPost', $job->id);
+
         return response()->json([
             'status' => true,
             'message' => 'Lowongan berhasil dipublikasikan.',
@@ -88,6 +91,8 @@ class JobController extends Controller
         abort_unless($jobPost->merchant_profile_id === $profile->id, 404);
         $validated = $this->validatedJobData($request);
         $jobPost->update($validated);
+
+        ActivityLogService::logAuth('update', 'Memperbarui lowongan ' . $jobPost->title, 'JobPost', $jobPost->id);
 
         return response()->json([
             'status' => true,
@@ -103,6 +108,7 @@ class JobController extends Controller
 
         if ($jobPost->applications()->exists()) {
             $jobPost->update(['status' => 'archived']);
+            ActivityLogService::logAuth('delete', 'Menghapus lowongan ' . $jobPost->title . ' (diarsipkan)', 'JobPost', $jobPost->id);
 
             return response()->json([
                 'status' => true,
@@ -111,6 +117,7 @@ class JobController extends Controller
             ]);
         }
 
+        ActivityLogService::logAuth('delete', 'Menghapus lowongan ' . $jobPost->title, 'JobPost', $jobPost->id);
         $jobPost->delete();
 
         return response()->json(['status' => true, 'message' => 'Lowongan berhasil dihapus.']);
@@ -221,6 +228,13 @@ class JobController extends Controller
 
         event(new MessageSent($welcomeMessage->load('sender:id,name')));
 
+        ActivityLogService::logAuth(
+            'create',
+            'Mengirim lamaran ' . $jobPost->title . ' di ' . $jobPost->merchantProfile->merchant_name,
+            'JobApplication',
+            $application->id
+        );
+
         return response()->json([
             'status' => true,
             'message' => 'Lamaran berhasil dikirim.',
@@ -305,6 +319,14 @@ class JobController extends Controller
                 'status' => $jobApplication->status,
                 'note' => $jobApplication->merchant_note,
             ]);
+
+            $candidateName = $jobApplication->load('student:id,name')->student?->name ?? 'pelamar';
+            ActivityLogService::logAuth(
+                'update',
+                'Memperbarui status lamaran ' . $candidateName . ' ke ' . $jobApplication->status,
+                'JobApplication',
+                $jobApplication->id
+            );
         }
 
         return response()->json([

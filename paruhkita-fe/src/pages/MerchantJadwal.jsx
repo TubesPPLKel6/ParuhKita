@@ -198,7 +198,7 @@ export default function MerchantJadwal() {
   };
 
   return (
-    <MerchantShell active="Jadwal" merchant={merchant} counts={shellCounts}>
+    <MerchantShell active="Jadwal" merchant={merchant} counts={shellCounts} showTips>
       <div className="mx-auto max-w-[1120px] space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
