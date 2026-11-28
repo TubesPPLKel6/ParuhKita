@@ -19,6 +19,11 @@ class JobApplication extends Model
         return $this->belongsTo(JobPost::class);
     }
 
+    public function conversation()
+    {
+        return $this->hasOne(Conversation::class);
+    }
+
     public function student()
     {
         return $this->belongsTo(User::class, 'user_id');

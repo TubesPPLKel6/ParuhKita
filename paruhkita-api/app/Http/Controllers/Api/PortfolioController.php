@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\StudentPortfolio;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -62,6 +63,8 @@ class PortfolioController extends Controller
             'file_size'   => $fileSize,
         ]);
 
+        ActivityLogService::logAuth('create', 'Menambahkan portofolio ' . $portfolio->title, 'StudentPortfolio', $portfolio->id);
+
         return response()->json([
             'status'  => true,
             'message' => 'Portofolio berhasil ditambahkan',
@@ -100,6 +103,8 @@ class PortfolioController extends Controller
 
         $portfolio->update($request->only(['title', 'description']));
 
+        ActivityLogService::logAuth('update', 'Memperbarui portofolio ' . $portfolio->title, 'StudentPortfolio', $portfolio->id);
+
         return response()->json([
             'status'  => true,
             'message' => 'Portofolio berhasil diperbarui',
@@ -122,6 +127,7 @@ class PortfolioController extends Controller
             Storage::delete($path);
         }
 
+        ActivityLogService::logAuth('delete', 'Menghapus portofolio ' . $portfolio->title, 'StudentPortfolio', $portfolio->id);
         $portfolio->delete();
 
         return response()->json([

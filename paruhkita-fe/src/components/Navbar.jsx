@@ -18,6 +18,7 @@ export default function Navbar() {
     { to: '/kesiapan-karier', label: 'Kesiapan karier' },
     { to: '/lamaran', label: 'Lamaran saya' },
     { to: '/komunitas', label: 'Komunitas' },
+    { to: '/log-aktivitas', label: 'Log Aktivitas' },
   ];
 
   const initials = user?.name

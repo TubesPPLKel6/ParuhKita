@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\StudentProfile;
+use App\Services\ActivityLogService;
 use App\Models\StudentSkill;
 use App\Models\StudentAvailability;
 use Illuminate\Http\Request;
@@ -90,6 +91,8 @@ class ProfileController extends Controller
             ['user_id' => $user->id],
             $profileData
         );
+
+        ActivityLogService::logAuth('update', 'Memperbarui profil dan informasi pendidikan', 'StudentProfile', $user->id);
 
         return response()->json([
             'status'  => true,
@@ -226,6 +229,8 @@ class ProfileController extends Controller
                 'hours_per_day' => $avail['hours_per_day'] ?? null,
             ]);
         }
+
+        ActivityLogService::logAuth('update', 'Memperbarui jadwal ketersediaan waktu', 'StudentAvailability', $user->id);
 
         return response()->json([
             'status'  => true,

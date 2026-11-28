@@ -220,7 +220,7 @@ export default function MerchantJobs() {
       active="Lowongan"
       activeTopNav="Lowongan"
       counts={{ jobs: activeJobs.length }}
-      contentClassName="px-5 py-6 lg:px-8 lg:py-7"
+      contentClassName="px-6 py-7 lg:px-8"
     >
       <div className="space-y-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

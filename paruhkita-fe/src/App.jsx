@@ -25,6 +25,8 @@ import PortfolioList from './pages/student/PortfolioList';
 import SavedJobs from './pages/student/SavedJobs';
 import Notifikasi from './pages/student/Notifikasi';
 import LaporMasalah from './pages/student/LaporMasalah';
+import StudentActivityLog from './pages/student/StudentActivityLog';
+import Messages from './pages/Messages';
 
 
 // Pages Merchant 
@@ -39,6 +41,8 @@ import DetailPelamar from './pages/merchant/DetailPelamar';
 import DashboardSurveiMerchant from './pages/merchant/DashboardSurveiMerchant';
 import MerchantProfile from './pages/merchant/MerchantProfile';
 import MerchantSettings from './pages/merchant/MerchantSettings';
+import MerchantActivityLog from './pages/merchant/MerchantActivityLog';
+import MerchantQuickReplyTemplates from './pages/merchant/MerchantQuickReplyTemplates';
 import AdminMerchantVerifications from './pages/admin/AdminMerchantVerifications';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminVerifications from './pages/admin/AdminVerifications';
@@ -49,6 +53,7 @@ import AdminMasterForm from './pages/admin/AdminMasterForm';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminLayout from './components/AdminLayout';
 import AdminPengaduan from './pages/admin/AdminPengaduan';
+import AdminActivityLog from './pages/admin/AdminActivityLog';
 
 // Layout Standar Mahasiswa //
 function AppLayout({ children }) {
@@ -59,13 +64,7 @@ function AppLayout({ children }) {
 
 // Layout Khusus Merchant //
 function MerchantLayout({ children }) {
-  return (
-    <div className="min-h-screen flex flex-col bg-[#F6F9FC]">
-      <main className="flex-1">
-        {children}
-      </main>
-    </div>
-  );
+  return children;
 }
 
 export default function App() {
@@ -85,6 +84,22 @@ export default function App() {
                 <MerchantLayout>
                   <MerchantDashboard />
                 </MerchantLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/messages"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <Messages />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/merchant/messages/templates"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantQuickReplyTemplates />
               </ProtectedRoute>
             }
           />
@@ -180,6 +195,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/merchant/log-aktivitas"
+            element={
+              <ProtectedRoute allowedRoles={['merchant']}>
+                <MerchantActivityLog />
+              </ProtectedRoute>
+            }
+          />
            <Route
              path="/admin/dashboard"
              element={
@@ -253,6 +276,14 @@ export default function App() {
             </ProtectedRoute>
            }
           />
+          <Route
+            path="/admin/log-aktivitas"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminActivityLog />
+              </ProtectedRoute>
+            }
+          />
 
 
           {/* ================= APP ENTRY ================= */}
@@ -298,6 +329,14 @@ export default function App() {
                 <AppLayout>
                   <Notifikasi />
                 </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pesan"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <Messages />
               </ProtectedRoute>
             }
           />
@@ -358,6 +397,16 @@ export default function App() {
               <ProtectedRoute allowedRoles={['mahasiswa']}>
                 <AppLayout>
                   <LaporMasalah />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/log-aktivitas"
+            element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout>
+                  <StudentActivityLog />
                 </AppLayout>
               </ProtectedRoute>
             }

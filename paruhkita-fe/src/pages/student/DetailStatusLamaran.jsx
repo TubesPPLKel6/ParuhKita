@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock3,
   FileText,
+  MessageCircle,
   Star,
   X,
 } from 'lucide-react';
@@ -190,6 +191,13 @@ export default function DetailStatusLamaran() {
                 <p className="mt-1 text-[12px] text-pk-primary">
                   {merchant.merchant_name} · {merchant.address}
                 </p>
+                <Link
+                  to={`/pesan?applicationId=${application.id}`}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-pk-primary bg-white px-3 py-2 text-[11px] font-bold text-pk-primary transition hover:bg-pk-soft"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  Chat perusahaan
+                </Link>
               </div>
             </div>
             <StatusPill status={application.status} label={application.status_label} />

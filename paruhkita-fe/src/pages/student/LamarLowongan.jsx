@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, FileText, LockKeyhole, Upload, XCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, FileText, LockKeyhole, MessageCircle, Upload, XCircle } from 'lucide-react';
 import api from '../../api/axios';
 
 const steps = ['Detail lowongan', 'Formulir pengajuan', 'Persyaratan', 'Konfirmasi'];
@@ -219,9 +219,12 @@ export default function LamarLowongan() {
         {step === 4 && <section className="mx-auto max-w-2xl rounded-lg border border-[#D8E5EE] bg-white p-6 text-center sm:p-10">
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#CAF0F8]"><CheckCircle2 size={28} className="text-[#0346C8]" /></span>
           <h2 className="mt-4 text-2xl font-extrabold text-[#03045E]">Lamaran Berhasil Dikirim!</h2>
-          <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-[#536B82]">Lamaranmu telah diteruskan kepada {merchant.merchant_name}. Pantau status dan perkembangan proses seleksi di Lamaran Saya.</p>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-[#536B82]">Lamaranmu telah diteruskan kepada {merchant.merchant_name}. Pesan perkenalan juga sudah dikirim; kamu dapat melanjutkan percakapan melalui menu Pesan.</p>
           <div className="mt-6 rounded-lg border border-[#D8E5EE] bg-[#EFFAFF] p-5 text-left"><p className="text-sm font-bold text-[#03045E]">{job.title}</p><p className="mt-1 text-[10px] text-[#536B82]">{merchant.merchant_name} · {merchant.address}</p><p className="mt-4 text-[10px] text-[#536B82]">ID Lamaran</p><p className="font-semibold text-[#102C4D]">PK-{application?.id}</p><p className="mt-3 text-[10px] text-emerald-700">Semua dokumen wajib berhasil disertakan.</p></div>
-          <button type="button" onClick={() => navigate(`/lamaran/${application?.id}`)} className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#F59E0B] px-5 py-2.5 text-xs font-bold text-[#03045E]">Lihat Status Lamaran <ArrowRight size={14} /></button>
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <button type="button" onClick={() => navigate(`/lamaran/${application?.id}`)} className="inline-flex items-center gap-2 rounded-md bg-[#F59E0B] px-5 py-2.5 text-xs font-bold text-[#03045E]">Lihat Status Lamaran <ArrowRight size={14} /></button>
+            <Link to={`/pesan?applicationId=${application?.id}`} className="inline-flex items-center gap-2 rounded-md border border-[#0346C8] bg-white px-5 py-2.5 text-xs font-bold text-[#0346C8] hover:bg-[#EFFAFF]"><MessageCircle size={14} /> Chat perusahaan</Link>
+          </div>
           <p className="mt-4"><Link to="/lamaran" className="text-[10px] font-semibold text-[#023E8A]">Lihat seluruh pengajuan di Lamaran Saya</Link></p>
         </section>}
       </main>

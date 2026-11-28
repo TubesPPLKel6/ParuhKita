@@ -54,21 +54,38 @@ export default function MerchantCandidates() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([
-      api.get('/v1/merchant/jobs'),
-      api.get('/v1/merchant/profile').catch(() => null),
-    ])
-      .then(([jobsResponse, profileResponse]) => {
+    const loadCandidates = async () => {
+      setLoading(true);
+      setErrorMessage('');
+
+      try {
+        let merchantProfile;
+        try {
+          const profileResponse = await api.get('/v1/merchant/profile');
+          merchantProfile = profileResponse.data.data;
+        } catch (error) {
+          if (error.response?.status !== 404) throw error;
+          merchantProfile = null;
+        }
+
         if (!active) return;
-        setJobs(jobsResponse.data.data || []);
-        setProfile(profileResponse?.data?.data || null);
-      })
-      .catch((error) => {
+        setProfile(merchantProfile);
+
+        if (!merchantProfile?.is_verified) {
+          setJobs([]);
+          return;
+        }
+
+        const jobsResponse = await api.get('/v1/merchant/jobs');
+        if (active) setJobs(jobsResponse.data.data || []);
+      } catch (error) {
         if (active) setErrorMessage(error.response?.data?.message || 'Gagal memuat daftar kandidat.');
-      })
-      .finally(() => {
+      } finally {
         if (active) setLoading(false);
-      });
+      }
+    };
+
+    loadCandidates();
 
     return () => { active = false; };
   }, []);
@@ -113,15 +130,64 @@ export default function MerchantCandidates() {
     candidates: candidates.length,
     messages: 0,
   };
+  const verificationStatus = profile?.verification_status;
+  const verificationMessage = !profile
+    ? 'Lengkapi profil usaha terlebih dahulu, lalu ajukan verifikasi agar dapat mengelola kandidat.'
+    : verificationStatus === 'pending'
+      ? 'Dokumen usaha sedang ditinjau. Daftar kandidat tersedia setelah verifikasi disetujui.'
+      : verificationStatus === 'rejected' || verificationStatus === 'revision_required'
+        ? 'Perbarui dokumen verifikasi usaha agar dapat mengakses daftar kandidat.'
+        : 'Usaha harus terverifikasi sebelum daftar kandidat dapat diakses.';
+  const verificationAction = !profile
+    ? { label: 'Lengkapi Profil Usaha', to: '/merchant/profile' }
+    : verificationStatus === 'pending'
+      ? { label: 'Lihat Status Verifikasi', to: '/merchant/dashboard' }
+      : { label: 'Ajukan Verifikasi Usaha', to: '/merchant/dashboard' };
+  const candidateFilters = (
+    <>
+      <div className="mt-5 flex flex-wrap items-center gap-2.5">
+        {TABS.map((tab) => {
+          const active = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => changeTab(tab.key)}
+              className={`rounded-full px-4 py-1.5 text-[12px] font-semibold transition ${
+                active
+                  ? 'bg-pk-cyan text-white shadow-xs'
+                  : 'border border-pk-border bg-white text-pk-muted hover:bg-pk-soft'
+              }`}
+            >
+              {tab.label} ({counts[tab.key] || 0})
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="relative w-full sm:w-[320px]">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-pk-muted" />
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Cari nama kandidat atau posisi..."
+            className="h-10 w-full rounded-lg border border-pk-border bg-white pl-9 pr-3 text-[12px] text-pk-body placeholder:text-pk-hint outline-none transition focus:border-pk-cyan"
+          />
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <MerchantShell
       active="Kandidat"
       activeTopNav="Kandidat"
-      merchant={{ merchant_name: profile?.merchant_name, address: profile?.address, is_verified: profile?.is_verified }}
+      merchant={profile || undefined}
       counts={shellCounts}
       showTips={false}
-      contentClassName="px-6 py-7 lg:px-10"
+      contentClassName="px-6 py-7 lg:px-8"
     >
       <div className="w-full">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -130,39 +196,6 @@ export default function MerchantCandidates() {
             <p className="mt-1.5 text-[12.5px] text-pk-muted">
               Pantau seluruh pelamar dan berikan masukan untuk kandidat yang belum diterima.
             </p>
-          </div>
-        </div>
-
-        <div className="mt-5 flex flex-wrap items-center gap-2.5">
-          {TABS.map((tab) => {
-            const active = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => changeTab(tab.key)}
-                className={`rounded-full px-4 py-1.5 text-[12px] font-semibold transition ${
-                  active
-                    ? 'bg-pk-cyan text-white shadow-xs'
-                    : 'border border-pk-border bg-white text-pk-muted hover:bg-pk-soft'
-                }`}
-              >
-                {tab.label} ({counts[tab.key] || 0})
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <div className="relative w-full sm:w-[320px]">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-pk-muted" />
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Cari nama kandidat atau posisi..."
-              className="h-10 w-full rounded-lg border border-pk-border bg-white pl-9 pr-3 text-[12px] text-pk-body placeholder:text-pk-hint outline-none transition focus:border-pk-cyan"
-            />
           </div>
         </div>
 
@@ -176,66 +209,88 @@ export default function MerchantCandidates() {
           <p className="mt-6 rounded-xl border border-pk-border bg-white px-5 py-8 text-[12px] text-pk-muted">
             Memuat daftar kandidat...
           </p>
+        ) : errorMessage ? null : !profile?.is_verified ? (
+          <section className="mt-6 rounded-xl border border-amber-200 bg-white px-6 py-8">
+            <h2 className="text-[14px] font-bold text-pk-navy">
+              {verificationStatus === 'pending' ? 'Verifikasi usaha sedang diproses' : 'Verifikasi usaha diperlukan'}
+            </h2>
+            <p className="mt-2 max-w-2xl text-[12px] leading-relaxed text-pk-muted">{verificationMessage}</p>
+            {(verificationStatus === 'rejected' || verificationStatus === 'revision_required') && profile?.verification_note && (
+              <p className="mt-2 text-[12px] text-rose-700">Catatan verifikasi: {profile.verification_note}</p>
+            )}
+            <Link
+              to={verificationAction.to}
+              className="mt-4 inline-flex rounded-lg bg-pk-primary px-4 py-2.5 text-[11px] font-bold text-white transition hover:bg-pk-navy"
+            >
+              {verificationAction.label}
+            </Link>
+          </section>
         ) : visible.length === 0 ? (
-          <div className="mt-6 rounded-xl border border-pk-border bg-white px-6 py-12 text-center">
-            <p className="text-[13px] font-semibold text-pk-navy">Tidak ada kandidat pada filter ini</p>
-            <p className="mt-1 text-[11.5px] text-pk-muted">Coba ubah status atau kata kunci pencarian.</p>
-          </div>
+          <>
+            {candidateFilters}
+            <div className="mt-6 rounded-xl border border-pk-border bg-white px-6 py-12 text-center">
+              <p className="text-[13px] font-semibold text-pk-navy">Tidak ada kandidat pada filter ini</p>
+              <p className="mt-1 text-[11.5px] text-pk-muted">Coba ubah status atau kata kunci pencarian.</p>
+            </div>
+          </>
         ) : (
-          <div className="mt-4 space-y-3">
-            {visible.map((candidate) => (
-              <article
-                key={candidate.id}
-                className="flex flex-col gap-4 rounded-xl border border-pk-border bg-white px-5 py-4 md:flex-row md:items-center"
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white ${
-                      candidate.id % 2 === 1 ? 'bg-pk-primary' : 'bg-pk-cyan'
-                    }`}
-                  >
-                    {initialsOf(candidate.student?.name)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-bold text-pk-navy">{candidate.student?.name}</p>
-                    <p className="truncate text-[11px] text-pk-muted">
-                      {[candidate.student?.student_profile?.degree_level, candidate.student?.student_profile?.major].filter(Boolean).join(' ')}
-                      {candidate.student?.student_profile?.university ? ` · ${candidate.student.student_profile.university}` : ''}
-                    </p>
-                    <p className="mt-0.5 truncate text-[11px] text-pk-body">
-                      Posisi: {candidate.job_title} · Dilamar {formatDate(candidate.created_at)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                  <span className={`rounded-md border px-2 py-1 text-[10px] font-bold ${STATUS_STYLES[candidate.status] || STATUS_STYLES.pending}`}>
-                    {STATUS_LABELS[candidate.status] || candidate.status}
-                  </span>
-
-                  {candidate.status === 'rejected' && candidate.feedback_report?.status === 'final' && (
-                    <span className="text-[10px] font-medium text-pk-muted">Feedback terkirim</span>
-                  )}
-
-                  <Link
-                    to={`/merchant/applications/${candidate.id}`}
-                    className="rounded-md border border-pk-border bg-white px-3.5 py-2 text-[11px] font-semibold text-pk-navy transition hover:bg-pk-soft"
-                  >
-                    Lihat Detail
-                  </Link>
-
-                  {candidate.status === 'rejected' && (
-                    <Link
-                      to={`/merchant/applications/${candidate.id}/feedback`}
-                      className="rounded-md bg-pk-primary px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-pk-navy"
+          <>
+            {candidateFilters}
+            <div className="mt-4 space-y-3">
+              {visible.map((candidate) => (
+                <article
+                  key={candidate.id}
+                  className="flex flex-col gap-4 rounded-xl border border-pk-border bg-white px-5 py-4 md:flex-row md:items-center"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white ${
+                        candidate.id % 2 === 1 ? 'bg-pk-primary' : 'bg-pk-cyan'
+                      }`}
                     >
-                      Beri Masukan
+                      {initialsOf(candidate.student?.name)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-bold text-pk-navy">{candidate.student?.name}</p>
+                      <p className="truncate text-[11px] text-pk-muted">
+                        {[candidate.student?.student_profile?.degree_level, candidate.student?.student_profile?.major].filter(Boolean).join(' ')}
+                        {candidate.student?.student_profile?.university ? ` · ${candidate.student.student_profile.university}` : ''}
+                      </p>
+                      <p className="mt-0.5 truncate text-[11px] text-pk-body">
+                        Posisi: {candidate.job_title} · Dilamar {formatDate(candidate.created_at)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                    <span className={`rounded-md border px-2 py-1 text-[10px] font-bold ${STATUS_STYLES[candidate.status] || STATUS_STYLES.pending}`}>
+                      {STATUS_LABELS[candidate.status] || candidate.status}
+                    </span>
+
+                    {candidate.status === 'rejected' && candidate.feedback_report?.status === 'final' && (
+                      <span className="text-[10px] font-medium text-pk-muted">Feedback terkirim</span>
+                    )}
+
+                    <Link
+                      to={`/merchant/applications/${candidate.id}`}
+                      className="rounded-md border border-pk-border bg-white px-3.5 py-2 text-[11px] font-semibold text-pk-navy transition hover:bg-pk-soft"
+                    >
+                      Lihat Detail
                     </Link>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
+
+                    {candidate.status === 'rejected' && (
+                      <Link
+                        to={`/merchant/applications/${candidate.id}/feedback`}
+                        className="rounded-md bg-pk-primary px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-pk-navy"
+                      >
+                        Beri Masukan
+                      </Link>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </MerchantShell>

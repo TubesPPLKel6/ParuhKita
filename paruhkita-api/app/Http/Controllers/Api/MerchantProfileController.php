@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MerchantProfile;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -134,6 +135,8 @@ class MerchantProfileController extends Controller
         }
 
         Storage::disk('public')->delete($oldAssetPaths);
+
+        ActivityLogService::logAuth('update', 'Memperbarui profil usaha ' . $profile->merchant_name, 'MerchantProfile', $profile->id);
 
         return response()->json([
             'status' => true,

@@ -34,7 +34,7 @@ export default function MerchantFeedbackSuccess() {
   if (loading) {
     return (
       <MerchantShell active="Kandidat" activeTopNav="Kandidat" showTips={false}
-      contentClassName="px-6 py-7 lg:px-10">
+      contentClassName="px-6 py-7 lg:px-8">
         <div className="py-16 text-[13px] text-pk-muted">Memuat ringkasan feedback...</div>
       </MerchantShell>
     );
@@ -43,7 +43,7 @@ export default function MerchantFeedbackSuccess() {
   if (!payload || errorMessage) {
     return (
       <MerchantShell active="Kandidat" activeTopNav="Kandidat" showTips={false}
-      contentClassName="px-6 py-7 lg:px-10">
+      contentClassName="px-6 py-7 lg:px-8">
         <p role="alert" className="py-10 text-[13px] text-rose-700">{errorMessage}</p>
         <Link to={`/merchant/applications/${applicationId}/feedback`} className="text-[12px] font-bold text-pk-primary">
           Kembali ke Input Evaluasi
@@ -62,7 +62,7 @@ export default function MerchantFeedbackSuccess() {
       merchant={{ merchant_name: merchant?.name, address: merchant?.address, is_verified: true }}
       counts={sidebar}
       showTips={false}
-      contentClassName="px-6 py-7 lg:px-10"
+      contentClassName="px-6 py-7 lg:px-8"
     >
       <div className="w-full">
         <Link

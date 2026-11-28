@@ -51,4 +51,9 @@ class MerchantProfile extends Model
     {
         return $this->hasMany(JobPost::class);
     }
+
+    public function quickReplyTemplates()
+    {
+        return $this->hasMany(QuickReplyTemplate::class);
+    }
 }

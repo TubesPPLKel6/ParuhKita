@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
+
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Accept': 'application/json',
   },
@@ -9,7 +11,7 @@ const api = axios.create({
 
 // Interceptor: Tambahkan Bearer token ke setiap request jika ada
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('pk_token');
+  const token = sessionStorage.getItem('pk_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -23,8 +25,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('pk_token');
-      localStorage.removeItem('pk_user');
+      sessionStorage.removeItem('pk_token');
+      sessionStorage.removeItem('pk_user');
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

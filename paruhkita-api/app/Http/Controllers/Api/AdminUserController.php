@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MerchantProfile;
 use App\Models\StudentProfile;
 use App\Models\User;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -170,6 +171,10 @@ class AdminUserController extends Controller
         });
 
         $user->refresh()->load(['studentProfile', 'merchantProfile']);
+
+        if ($changed) {
+            ActivityLogService::logAuth('update', 'Memperbarui hak akses akun pengguna ' . $user->name, 'User', $user->id);
+        }
 
         return response()->json([
             'status' => true,

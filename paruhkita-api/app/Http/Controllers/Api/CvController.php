@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\StudentCv;
 use App\Models\CvBuilderSection;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -77,6 +78,8 @@ class CvController extends Controller
             'file_url'   => '/storage/' . $path,
             'is_primary' => $isPrimary,
         ]);
+
+        ActivityLogService::logAuth('create', 'Mengunggah CV ' . $cv->title, 'StudentCv', $cv->id);
 
         return response()->json([
             'status'  => true,
@@ -224,6 +227,7 @@ class CvController extends Controller
             Storage::delete($path);
         }
 
+        ActivityLogService::logAuth('delete', 'Menghapus CV ' . $cv->title, 'StudentCv', $cv->id);
         $cv->sections()->delete();
         $cv->delete();
 

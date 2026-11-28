@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\JobCategory;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\StudentProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -74,9 +76,25 @@ class JobIntegrationTest extends TestCase
             ->assertJsonPath('data.0.merchant_profile.merchant_name', 'Kedai Contoh')
             ->assertJsonPath('data.0.is_applied', false);
 
-        $this->post("/api/v1/jobs/{$job['id']}/applications", $this->validApplicationData())
+        $applicationId = $this->post("/api/v1/jobs/{$job['id']}/applications", $this->validApplicationData())
             ->assertCreated()
-            ->assertJsonPath('data.status', 'pending');
+            ->assertJsonPath('data.status', 'pending')
+            ->json('data.id');
+        $conversation = Conversation::where('job_application_id', $applicationId)->firstOrFail();
+        $this->assertDatabaseHas('conversation_user_states', [
+            'conversation_id' => $conversation->id,
+            'user_id' => $student->id,
+        ]);
+        $this->assertDatabaseHas('conversation_user_states', [
+            'conversation_id' => $conversation->id,
+            'user_id' => $merchant->id,
+        ]);
+        $this->assertDatabaseHas('messages', [
+            'conversation_id' => $conversation->id,
+            'sender_id' => $student->id,
+            'body' => 'Hai, aku ' . $student->name . '! Aku baru saja melamar posisi Barista Sore di Kedai Contoh. Aku tertarik dengan kesempatan ini dan berharap bisa berdiskusi lebih lanjut. Terima kasih!',
+        ]);
+        $this->assertDatabaseCount('jobs', 1);
 
         $this->getJson('/api/v1/student/applications')
             ->assertOk()
@@ -220,6 +238,51 @@ class JobIntegrationTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['quota', 'application_deadline']);
+    }
+
+    public function test_student_notifications_only_return_relevant_jobs_with_near_deadlines(): void
+    {
+        $merchant = $this->createUser('merchant', 'notifications-merchant@test.local');
+        $profile = $merchant->merchantProfile()->create([
+            'merchant_name' => 'Merchant Notifikasi',
+            'is_verified' => true,
+            'verification_status' => 'approved',
+        ]);
+        $student = $this->createUser('mahasiswa', 'notifications-student@test.local');
+
+        $createJob = fn (string $title, int $daysUntilDeadline) => $profile->jobPosts()->create([
+            'title' => $title,
+            'category' => 'Retail',
+            'schedule' => 'Sore',
+            'location' => 'Yogyakarta',
+            'wage' => 'Rp20.000/jam',
+            'quota' => 1,
+            'application_deadline' => now()->addDays($daysUntilDeadline)->toDateString(),
+        ]);
+
+        $bookmarkedJob = $createJob('Tersimpan Mendekati Tenggat', 1);
+        $appliedJob = $createJob('Sudah Dilamar', 7);
+        $irrelevantJob = $createJob('Tidak Terkait', 1);
+        $farDeadlineJob = $createJob('Tenggat Masih Lama', 8);
+        $appliedJob->applications()->create(['user_id' => $student->id]);
+
+        $response = $this->actingAs($student, 'sanctum')
+            ->getJson('/api/v1/student/notifications?bookmark_ids[]=' . $bookmarkedJob->id . '&bookmark_ids[]=' . $farDeadlineJob->id)
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment([
+                'id' => $bookmarkedJob->id,
+                'title' => 'Tersimpan Mendekati Tenggat',
+                'is_applied' => false,
+            ])
+            ->assertJsonFragment([
+                'id' => $appliedJob->id,
+                'title' => 'Sudah Dilamar',
+                'is_applied' => true,
+            ]);
+
+        $this->assertNotContains($irrelevantJob->id, collect($response->json('data'))->pluck('id'));
+        $this->assertNotContains($farDeadlineJob->id, collect($response->json('data'))->pluck('id'));
     }
 
     private function validApplicationData(): array
